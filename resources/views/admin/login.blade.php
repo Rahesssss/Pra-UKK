@@ -56,7 +56,7 @@
                     <label class="block text-sm font-semibold mb-2">Username</label>
                     <div class="relative">
 
-                        {{-- Ikon Library FontAwesome untuk User --}}
+                        {{-- Ikon FontAwesome User --}}
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                             <i class="fa-solid fa-user"></i>
                         </span>
@@ -71,7 +71,7 @@
                     <label class="block text-sm font-semibold mb-2">Password</label>
                     <div class="relative">
 
-                        {{-- Ikon Library FontAwesome untuk Gembok/Lock --}}
+                        {{-- Ikon FontAwesome untuk Lock --}}
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                             <i class="fa-solid fa-lock"></i>
                         </span>
@@ -79,7 +79,7 @@
                         <input id="password" type="password" name="password" placeholder="••••••••" required
                             class="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-3 focus:ring-2 focus:ring-orange-400 focus:outline-none">
 
-                        {{-- Tombol Show / Hide Password pakai Ikon Mata FontAwesome --}}
+                        {{-- Ikon Mata FontAwesome --}}
                         <button type="button" onclick="togglePassword()"
                             class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-orange-500">
                             <i id="eyeIcon" class="fa-solid fa-eye"></i>

@@ -15,11 +15,12 @@ class Menu extends Model
         'kategori',
         'harga',
         'status_tersedia',
+        'gambar',
     ];
 
     // Cast agar status_tersedia diperlakukan sebagai boolean/integer
     protected $casts = [
-        'harga'           => 'decimal:2',
+        'harga'           => 'integer',
         'status_tersedia' => 'integer',
     ];
 }

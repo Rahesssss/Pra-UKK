@@ -62,7 +62,7 @@
                 <span>Menu</span>
             </a>
 
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 font-medium hover:bg-orange-50 hover:text-orange-600 transition-colors">
+            <a href="{{ route('admin.meja.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold transition-colors {{ request()->routeIs('admin.meja.*') ? 'bg-orange-50 text-orange-600' : 'text-gray-500 hover:bg-orange-50 hover:text-orange-600' }}">
                 <i class="fa-solid fa-table-cells-large w-5 text-center"></i>
                 <span>Meja</span>
             </a>
