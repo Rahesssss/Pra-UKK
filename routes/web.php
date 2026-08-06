@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MejaController;
+use App\Http\Controllers\PelangganController;
 
 // 1. Saat membuka http://127.0.0.1:8000/, langsung masuk ke halaman login
 Route::get('/', [LoginController::class, 'showLoginForm']);
@@ -37,3 +38,9 @@ Route::get('/admin/meja', [MejaController::class, 'index'])->name('admin.meja.in
 Route::post('/admin/meja', [MejaController::class, 'store'])->name('admin.meja.store');
 Route::delete('/admin/meja/{id}', [MejaController::class, 'destroy'])->name('admin.meja.destroy');
 Route::put('/admin/meja/{id}', [MejaController::class, 'update'])->name('admin.meja.update');
+
+// Halaman menu pelanggan berdasarkan token meja
+Route::get('/menu/{token}', [PelangganController::class, 'index'])->name('pelanggan.menu');
+
+// Rute untuk halaman pesanan pelanggan berdasarkan token meja
+Route::get('/menu/{token}/pesanan', [PelangganController::class, 'pesanan'])->name('pelanggan.pesanan');

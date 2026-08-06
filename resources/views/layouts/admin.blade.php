@@ -17,7 +17,6 @@
         .dropdown-animate {
             animation: dropFadeIn 0.2s ease-out forwards;
         }
-
         @keyframes dropFadeIn {
             from {
                 opacity: 0;
@@ -86,10 +85,6 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <button class="relative text-gray-500 hover:text-orange-500 transition p-1">
-                    <i class="fa-solid fa-bell text-xl"></i>
-                    <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-orange-500 border-2 border-white rounded-full"></span>
-                </button>
 
                 <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                     <i class="fa-solid fa-user"></i>
