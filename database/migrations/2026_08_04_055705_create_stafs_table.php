@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('stafs', function (Blueprint $table) {
+        Schema::create('staf', function (Blueprint $table) {
             // 1. id_staf: int, Primary Key, Auto Increment
             $table->increments('id_staf');
             
@@ -21,8 +21,6 @@ return new class extends Migration
             // 4. nama_staf: varchar(100), Not Null
             $table->string('nama_staf', 100);
             
-            // 5 & 6. created_at & updated_at: timestamp dengan default CURRENT_TIMESTAMP
-            $table->timestamps();
         });
     }
 

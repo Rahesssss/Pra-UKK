@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Keranjang Pesanan - Restoran</title>
+    
+    {{-- Script Midtrans Snap (Sandbox) --}}
+    <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+    
     {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
     {{-- FontAwesome --}}
@@ -11,28 +16,20 @@
 
     <style>
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .page-transition {
             animation: fadeIn 0.35s ease-out forwards;
         }
     </style>
-
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased font-sans pb-48 page-transition">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen page-transition">
 
     {{-- HEADER KELUAR / KEMBALI --}}
     <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-xs">
         <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                {{-- Tombol Kembali ke Menu (Otomatis kembali atau ke route menu) --}}
                 <a href="{{ route('pelanggan.menu', $meja->token) }}" class="w-9 h-9 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-gray-50 transition shadow-xs">
                     <i class="fa-solid fa-arrow-left text-sm"></i>
                 </a>
@@ -46,8 +43,6 @@
 
     {{-- KONTEN UTAMA KERANJANG --}}
     <main class="max-w-md mx-auto px-4 py-5">
-        
-        {{-- Container List Item Pesanan (Diisi otomatis oleh JS) --}}
         <div id="cart-items-container" class="space-y-3">
             {{-- Item dari localStorage akan muncul di sini --}}
         </div>
@@ -63,42 +58,82 @@
                 <i class="fa-solid fa-utensils"></i> Pilih Menu Sekarang
             </a>
         </div>
-
     </main>
 
-    {{-- STICKY FOOTER: RINGKASAN PEMBAYARAN & TOMBOL KIRIM (MENEMPEL DI BAWAH) --}}
-    <div id="cart-summary" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50">
-        <div class="max-w-md mx-auto space-y-3">
-            
-            {{-- Rincian Biaya Ringkas --}}
-            <div class="space-y-1.5 text-xs bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <div class="flex justify-between text-gray-600">
-                    <span>Total Item (<span id="total-items">0</span> pesanan)</span>
-                    <span id="subtotal-harga" class="font-semibold text-gray-800">Rp 0</span>
+    {{-- ================= STICKY FOOTER ================= --}}
+<div
+    id="cart-summary"
+    class="fixed inset-x-0 bottom-0 z-50">
+
+    {{-- Background putih --}}
+    <div class="bg-white border-t border-gray-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)]">
+
+        <div class="max-w-md mx-auto px-4 py-4">
+            {{-- Ringkasan --}}
+            <div class="bg-gray-50 border rounded-xl p-3 mb-3">
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>
+                        Total Item
+                        (<span id="total-items">0</span> pesanan)
+                    </span>
+                    <span
+                        id="subtotal-harga"
+                        class="font-semibold">
+                        Rp 0
+                    </span>
                 </div>
-                <div class="flex justify-between text-sm font-extrabold text-gray-900 pt-1 border-t border-gray-200">
-                    <span>Total Pembayaran</span>
-                    <span id="total-bayar" class="text-orange-600">Rp 0</span>
+                <div class="border-t mt-2 pt-2 flex justify-between">
+                    <span class="font-bold">
+                        Total Pembayaran
+                    </span>
+                    <span
+                        id="total-bayar"
+                        class="font-bold text-orange-500 text-lg">
+                        Rp 0
+                    </span>
                 </div>
             </div>
 
-            {{-- Tombol Submit --}}
-            <button type="button" onclick="kirimPesanan()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-paper-plane"></i> Kirim Pesanan Ke Kasir
+            {{-- Tombol Checkout --}}
+            <button
+                type="button"
+                onclick="kirimPesanan()"
+                class="w-full h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition">
+
+                <i class="fa-solid fa-paper-plane mr-2"></i>
+
+                Kirim Pesanan & Bayar (QRIS)
+
             </button>
+
         </div>
+
     </div>
 
-    {{-- SCRIPT PENGELOLA KERANJANG (LOCALSTORAGE) --}}
-    <script>
-        const storageKey = 'cart_meja_{{ $meja->token }}';
+</div>
 
+    {{-- SCRIPT PENGELOLA KERANJANG & MIDTRANS --}}
+    <script>
+        // Fungsi universal untuk menarik data dari local storage berawalan cart_meja_
         function getCart() {
-            return JSON.parse(localStorage.getItem(storageKey)) || [];
+            let data = null;
+            // Cari dari semua key yang ada di localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key && key.startsWith('cart_meja_')) {
+                    data = localStorage.getItem(key);
+                    if (data && data !== '[]' && data !== 'null') {
+                        break; 
+                    }
+                }
+            }
+            return data ? JSON.parse(data) : [];
         }
 
         function saveCart(cart) {
-            localStorage.setItem(storageKey, JSON.stringify(cart));
+            // Simpan kembali ke key meja aktif saat ini
+            const activeKey = 'cart_meja_{{ $meja->token }}';
+            localStorage.setItem(activeKey, JSON.stringify(cart));
             renderCart();
         }
 
@@ -108,15 +143,15 @@
             const emptyState = document.getElementById('empty-cart');
             const summarySection = document.getElementById('cart-summary');
 
-            if (cart.length === 0) {
+            if (!cart || cart.length === 0) {
                 container.innerHTML = '';
                 emptyState.classList.remove('hidden');
-                summarySection.classList.add('hidden'); // Sembunyikan sticky footer jika kosong
+                summarySection.classList.add('hidden');
                 return;
             }
 
             emptyState.classList.add('hidden');
-            summarySection.classList.remove('hidden'); // Tampilkan sticky footer
+            summarySection.classList.remove('hidden');
 
             let html = '';
             let totalItems = 0;
@@ -168,7 +203,8 @@
             return new Intl.NumberFormat('id-ID').format(angka);
         }
 
-        function kirimPesanan() {
+        // Fungsi Tombol Kirim Pesanan yang Terhubung ke Midtrans
+        async function kirimPesanan() {
             const cart = getCart();
 
             if (cart.length === 0) {
@@ -176,12 +212,63 @@
                 return;
             }
 
-            // Simulasi pengiriman pesanan (bisa diintegrasikan ke database lewat AJAX/POST nantinya)
-            alert('Terima kasih! Pesanan untuk Meja {{ $meja->nama_meja }} berhasil dikirim ke kasir.');
-            
-            // Bersihkan keranjang meja setelah dipesan
-            localStorage.removeItem(storageKey);
-            renderCart();
+            let subtotal = 0;
+            cart.forEach(item => subtotal += (item.harga * item.qty));
+
+            const btnSubmit = document.querySelector('button[onclick="kirimPesanan()"]');
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan ke Midtrans...';
+            btnSubmit.disabled = true;
+
+            try {
+                const response = await fetch('{{ route("pelanggan.checkout") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        token_meja: '{{ $meja->token }}',
+                        items: cart,
+                        total_harga: subtotal
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.snapToken) {
+                    window.snap.pay(data.snapToken, {
+                        onSuccess: function(result){
+                            alert('Pembayaran berhasil! Pesanan diproses.');
+                            // Bersihkan local storage
+                            for (let i = 0; i < localStorage.length; i++) {
+                                let key = localStorage.key(i);
+                                if (key && key.startsWith('cart_meja_')) {
+                                    localStorage.removeItem(key);
+                                }
+                            }
+                            window.location.href = '{{ route("pelanggan.sukses") }}';
+                        },
+                        onPending: function(result){
+                            alert('Menunggu pembayaran Anda!');
+                        },
+                        onError: function(result){
+                            alert('Pembayaran gagal!');
+                        },
+                        onClose: function(){
+                            alert('Anda menutup popup sebelum menyelesaikan pembayaran.');
+                        }
+                    });
+                } else {
+                    alert('Gagal mengambil token pembayaran: ' + (data.message || 'Kesalahan server'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan jaringan atau server.');
+            } finally {
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', renderCart);

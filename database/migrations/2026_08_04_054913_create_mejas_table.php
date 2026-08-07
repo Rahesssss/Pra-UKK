@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('mejas', function (Blueprint $table) {
+        Schema::create('meja', function (Blueprint $table) {
             $table->id('id_meja'); // Primary Key (Otomatis INT, Auto Increment)
             $table->string('nama_meja', 50); // Contoh: "Meja 1"
             $table->enum('status', ['Active', 'Nonaktif'])->default('Active'); // Hanya bisa diisi 2 nilai ini
@@ -18,6 +18,6 @@ return new class extends Migration
     }
     public function down(): void
     {
-        Schema::dropIfExists('mejas');
+        Schema::dropIfExists('meja');
     }
 };

@@ -44,3 +44,13 @@ Route::get('/menu/{token}', [PelangganController::class, 'index'])->name('pelang
 
 // Rute untuk halaman pesanan pelanggan berdasarkan token meja
 Route::get('/menu/{token}/pesanan', [PelangganController::class, 'pesanan'])->name('pelanggan.pesanan');
+
+use App\Http\Controllers\OrderController;
+
+// Route untuk menerima data keranjang dari Javascript dan mengirimkan Token Midtrans
+Route::post('/pelanggan/checkout', [OrderController::class, 'checkout'])->name('pelanggan.checkout');
+
+// Route untuk menampilkan halaman sukses setelah pelanggan selesai bayar
+Route::get('/pesanan-sukses', function () {
+    return "<h1>Pembayaran Berhasil! Pesanan Anda sedang diproses.</h1>"; // Nanti bisa diganti dengan tampilan Blade yang bagus
+})->name('pelanggan.sukses');
