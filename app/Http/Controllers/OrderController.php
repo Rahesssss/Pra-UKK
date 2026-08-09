@@ -44,9 +44,9 @@ class OrderController extends Controller
                 $detail = new Detail_Pesanan();
                 $detail->pesanan_id = $order->id;
                 $detail->menu_id = $item['id'];
-                $detail->quantity = $item['qty'];
-                $detail->price = $item['harga'];
-                $detail->subtotal = $item['harga'] * $item['qty'];
+                $detail->jumlah = $item['qty'];
+                $detail->harga = $item['harga'];
+                $detail->total = $item['harga'] * $item['qty'];
                 $detail->save();
             }
 

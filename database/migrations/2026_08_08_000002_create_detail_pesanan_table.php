@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('pesanan_id');
             $table->unsignedInteger('menu_id'); // Sesuaikan dengan tipe id_menu (unsigned integer)
-            $table->integer('quantity');
-            $table->integer('price');
-            $table->integer('subtotal');
+            $table->integer('jumlah');
+            $table->integer('harga');
+            $table->integer('total');
             $table->timestamps();
             
             $table->foreign('pesanan_id')->references('id')->on('pesanan')->onDelete('cascade');

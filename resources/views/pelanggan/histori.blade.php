@@ -89,14 +89,14 @@
                             <div class="flex justify-between items-center text-xs">
                                 <div class="flex items-center gap-2">
                                     <span class="w-5 h-5 bg-gray-100 text-gray-700 font-bold rounded-md flex items-center justify-center text-[10px]">
-                                        {{ $detail->quantity }}x
+                                        {{ $detail->jumlah }}x
                                     </span>
                                     <span class="font-medium text-gray-800">
                                         {{ $detail->menu->nama_menu ?? 'Menu dihapus' }}
                                     </span>
                                 </div>
                                 <span class="text-gray-600 font-semibold">
-                                    Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
+                                    Rp {{ number_format($detail->total, 0, ',', '.') }}
                                 </span>
                             </div>
                         @endforeach

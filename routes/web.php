@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MejaController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\OrderController;
 
@@ -34,7 +35,7 @@ Route::get('/admin/menu/{id}/edit', [MenuController::class, 'edit'])->name('admi
 Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.menu.update');
 Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
 
-// Admin Meja Routes (SUDAH DIBERSIHKAN, HANYA ADA 1 RUTE YANG BENAR)
+// Admin Meja Routes
 Route::get('/admin/meja', [MejaController::class, 'index'])->name('admin.meja.index');
 Route::post('/admin/meja', [MejaController::class, 'store'])->name('admin.meja.store');
 Route::delete('/admin/meja/{id}', [MejaController::class, 'destroy'])->name('admin.meja.destroy');
@@ -57,3 +58,6 @@ Route::get('/pesanan-sukses/{token}', [OrderController::class, 'sukses'])->name(
 
 // Route untuk menampilkan histori pesanan pelanggan
 Route::get('/menu/{token}/histori', [OrderController::class, 'histori'])->name('pelanggan.histori');
+
+Route::get('/admin/laporan', [LaporanController::class, 'index'])->name('admin.laporan');
+Route::get('/admin/laporan/{id}', [LaporanController::class, 'showDetail'])->name('admin.laporan.detail');
