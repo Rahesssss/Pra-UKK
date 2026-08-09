@@ -17,8 +17,15 @@ class DashboardController extends Controller
         }
 
         // Eager load related models to prevent N+1 queries
+        // Tampilkan pesanan 'Menunggu', 'Sedang Dimasak', dan 'Selesai' (jika waktu update kurang dari 3 menit yang lalu)
         $pesanans = Pesanan::with(['meja', 'detailPesanan.menu'])
-            ->where('status_pembayaran', 'Lunas')
+            ->where(function($query) {
+                $query->whereIn('status_pesanan', ['Menunggu', 'Sedang Dimasak'])
+                      ->orWhere(function($q) {
+                          $q->where('status_pesanan', 'Selesai')
+                            ->where('updated_at', '>=', now()->subMinutes(3));
+                      });
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 

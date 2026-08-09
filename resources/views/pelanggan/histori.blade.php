@@ -59,15 +59,15 @@
 
                         <div class="text-right">
                             {{-- Logika Badge Status Pesanan --}}
-                            @if($order->status_pesanan == 'pending')
+                            @if($order->status_pesanan == 'Menunggu')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200">
                                     <i class="fa-solid fa-clock text-[10px] animate-pulse"></i> Menunggu
                                 </span>
-                            @elseif($order->status_pesanan == 'diproses')
+                            @elseif($order->status_pesanan == 'Sedang Dimasak')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
                                     <i class="fa-solid fa-fire text-[10px] animate-bounce"></i> Diproses
                                 </span>
-                            @elseif($order->status_pesanan == 'selesai')
+                            @elseif($order->status_pesanan == 'Selesai')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
                                     <i class="fa-solid fa-circle-check text-[10px]"></i> Selesai
                                 </span>

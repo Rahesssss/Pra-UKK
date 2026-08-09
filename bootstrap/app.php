@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Tambahkan baris ini untuk mempercayai proxy dari Ngrok
         $middleware->trustProxies(at: '*');
+        
+        // Kecualikan webhook Midtrans dari CSRF Protection
+        $middleware->validateCsrfTokens(except: [
+            'midtrans-callback',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

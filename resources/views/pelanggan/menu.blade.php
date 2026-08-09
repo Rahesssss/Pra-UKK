@@ -29,15 +29,27 @@
     {{-- Grid Daftar Menu --}}
     <div id="menu-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         @forelse($menus as $menu)
-        <div class="menu-item bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col relative" data-nama="{{ strtolower($menu->nama_menu) }}" data-kategori="{{ strtolower($menu->kategori) }}">
+        @php
+            $isHabis = ($menu->status_tersedia == 'habis' || $menu->status_tersedia == '0' || $menu->status_tersedia == 0);
+        @endphp
+        <div class="menu-item bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col relative {{ $isHabis ? 'opacity-75' : '' }}" data-nama="{{ strtolower($menu->nama_menu) }}" data-kategori="{{ strtolower($menu->kategori) }}">
             
             {{-- Gambar Menu --}}
             <div class="h-32 bg-gray-100 w-full overflow-hidden relative">
                 @if(!empty($menu->gambar))
-                    <img src="{{ asset('uploads/menu/' . $menu->gambar) }}" alt="{{ $menu->nama_menu }}" class="w-full h-full object-cover">
+                    <img src="{{ asset('uploads/menu/' . $menu->gambar) }}" alt="{{ $menu->nama_menu }}" class="w-full h-full object-cover {{ $isHabis ? 'grayscale brightness-75' : '' }}">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-gray-300">
                         <i class="fa-solid fa-utensils text-4xl"></i>
+                    </div>
+                @endif
+
+                {{-- Overlay Badge Habis di Tengah Gambar --}}
+                @if($isHabis)
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span class="bg-red-600 text-white font-extrabold text-xs px-3 py-1 rounded uppercase tracking-wider shadow-md border border-white/20">
+                            Habis
+                        </span>
                     </div>
                 @endif
             </div>
@@ -50,10 +62,15 @@
                 <div class="flex items-center justify-between mt-auto pt-2">
                     <span class="font-extrabold text-gray-800 text-sm">Rp {{ number_format($menu->harga ?? 15000, 0, ',', '.') }}</span>
                     
-                    {{-- DISAMAKAN NAMA FUNGSINYA MENJADI addToCart DAN MENGIRIM PARAMETER GAMBAR --}}
-                    <button onclick="addToCart('{{ $menu->id_menu ?? 1 }}', '{{ $menu->nama_menu }}', {{ $menu->harga ?? 15000 }}, '{{ $menu->gambar ?? '' }}')" class="py-1.5 px-3 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid fa-plus text-[9px]"></i> Tambah
-                    </button>
+                    @if($isHabis)
+                        <button disabled class="py-1.5 px-3 bg-gray-300 text-gray-500 rounded-lg text-xs font-bold cursor-not-allowed flex items-center gap-1">
+                            Habis
+                        </button>
+                    @else
+                        <button onclick="addToCart('{{ $menu->id_menu ?? 1 }}', '{{ $menu->nama_menu }}', {{ $menu->harga ?? 15000 }}, '{{ $menu->gambar ?? '' }}')" class="py-1.5 px-3 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-plus text-[9px]"></i> Tambah
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
@@ -94,7 +111,22 @@
             }
 
             localStorage.setItem(storageKey, JSON.stringify(cart));
-            alert(nama + ' berhasil ditambahkan ke keranjang!');
+            
+            // Panggil updateCartCount dari layout agar badge di footer langsung terupdate
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+            // Panggil fungsi animasi & notifikasi dari layout jika ada
+            if (typeof animateCartBadge === 'function') {
+                animateCartBadge();
+            }
+            
+            if (typeof showNotification === 'function') {
+                showNotification(nama + ' berhasil ditambahkan!');
+            } else {
+                alert(nama + ' berhasil ditambahkan ke keranjang!');
+            }
         }
 
         let currentKategori = 'semua';

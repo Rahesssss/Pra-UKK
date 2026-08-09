@@ -4,6 +4,13 @@
 @section('header-title', 'Antrean Pesanan')
 
 @section('content')
+@php
+    $pesanans = \App\Models\Pesanan::with(['meja', 'detailPesanan.menu'])
+        ->whereIn('status_pesanan', ['Menunggu', 'Sedang Dimasak', 'Selesai'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+@endphp
+
 {{-- ACTION BAR (Filter & Refresh) --}}
 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
     <div class="flex items-center gap-2 relative" id="filter-wrapper">
@@ -47,13 +54,39 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
                 <h3 class="font-bold text-gray-800">Menunggu</h3>
             </div>
-            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">0</span>
+            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">{{ $menungguCount = $pesanans->where('status_pesanan', 'Menunggu')->count() }}</span>
         </div>
-        <div class="p-3 flex flex-col gap-3 flex-1 justify-center">
-            <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12 md:py-20">
-                <i class="fa-solid fa-inbox text-3xl"></i>
-                <p>Belum ada pesanan</p>
-            </div>
+        <div class="p-3 flex flex-col gap-3 flex-1">
+            @php
+                $menungguItems = $pesanans->where('status_pesanan', 'Menunggu');
+            @endphp
+            @forelse($menungguItems as $pesanan)
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-orange-600">#ORD-{{ str_pad($pesanan->id, 3, '0', STR_PAD_LEFT) }}</span>
+                        <span class="text-[10px] text-gray-400">{{ $pesanan->created_at->diffForHumans() }}</span>
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">{{ $pesanan->meja->nama_meja }}</h4>
+                    <ul class="text-xs text-gray-600 mb-2 list-disc list-inside">
+                        @foreach($pesanan->detailPesanan as $detail)
+                            <li>{{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}</li>
+                        @endforeach
+                    </ul>
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-200">
+                        <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</span>
+                        <form action="{{ route('admin.dashboard.status', $pesanan->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="status_pesanan" value="Sedang Dimasak">
+                            <button type="submit" class="px-2 py-1 bg-orange-400 text-white text-[10px] rounded hover:bg-orange-500">Masak</button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
+                    <i class="fa-solid fa-inbox text-3xl"></i>
+                    <p>Belum ada pesanan</p>
+                </div>
+            @endforelse
         </div>
     </div>
 
@@ -64,13 +97,36 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                 <h3 class="font-bold text-gray-800">Sedang Dimasak</h3>
             </div>
-            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">0</span>
+            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">{{ $pesanans->where('status_pesanan', 'Sedang Dimasak')->count() }}</span>
         </div>
-        <div class="p-3 flex flex-col gap-3 flex-1 justify-center">
-            <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12 md:py-20">
-                <i class="fa-solid fa-fire-burner text-3xl"></i>
-                <p>Tidak ada yang dimasak</p>
-            </div>
+        <div class="p-3 flex flex-col gap-3 flex-1">
+            @forelse($pesanans->where('status_pesanan', 'Sedang Dimasak') as $pesanan)
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-blue-600">#ORD-{{ str_pad($pesanan->id, 3, '0', STR_PAD_LEFT) }}</span>
+                        <span class="text-[10px] text-gray-400">{{ $pesanan->created_at->diffForHumans() }}</span>
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">{{ $pesanan->meja->nama_meja }}</h4>
+                    <ul class="text-xs text-blue-800 mb-2 list-disc list-inside">
+                        @foreach($pesanan->detailPesanan as $detail)
+                            <li>{{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}</li>
+                        @endforeach
+                    </ul>
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-blue-200">
+                        <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</span>
+                        <form action="{{ route('admin.dashboard.status', $pesanan->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="status_pesanan" value="Selesai">
+                            <button type="submit" class="px-2 py-1 bg-green-500 text-white text-[10px] rounded hover:bg-green-600">Selesai</button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
+                    <i class="fa-solid fa-fire-burner text-3xl"></i>
+                    <p>Tidak ada yang dimasak</p>
+                </div>
+            @endforelse
         </div>
     </div>
 
@@ -79,15 +135,26 @@
         <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                <h3 class="font-bold text-gray-800">Selesai</h3>
+                <h3 class="font-bold text-gray-800">Selesai (Auto-hide 3m)</h3>
             </div>
-            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">0</span>
+            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">{{ $pesanans->where('status_pesanan', 'Selesai')->count() }}</span>
         </div>
-        <div class="p-3 flex flex-col gap-3 flex-1 justify-center">
-            <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12 md:py-20">
-                <i class="fa-solid fa-circle-check text-3xl"></i>
-                <p>Belum ada yang selesai</p>
-            </div>
+        <div class="p-3 flex flex-col gap-3 flex-1">
+            @forelse($pesanans->where('status_pesanan', 'Selesai') as $pesanan)
+                <div class="bg-green-50 p-3 rounded-lg border border-green-200 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-green-600">#ORD-{{ str_pad($pesanan->id, 3, '0', STR_PAD_LEFT) }}</span>
+                        <span class="text-[10px] text-gray-400">{{ $pesanan->updated_at->format('H:i') }}</span>
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">{{ $pesanan->meja->nama_meja }}</h4>
+                    <span class="text-xs font-bold text-green-700">Sudah Selesai</span>
+                </div>
+            @empty
+                <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
+                    <i class="fa-solid fa-circle-check text-3xl"></i>
+                    <p>Belum ada yang selesai</p>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>

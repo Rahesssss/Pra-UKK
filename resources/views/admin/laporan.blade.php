@@ -25,7 +25,7 @@
         </form>
     </div>
 
-    {{-- Summary Cards --}}
+    {{--  Card Laporan --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div class="bg-white rounded-xl p-4 sm:p-6 border border-green-200 shadow-sm">
             <div class="flex items-center justify-between">
@@ -79,7 +79,7 @@
     {{-- Table Daftar Pesanan --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="p-4 sm:p-6 border-b border-gray-200">
-            <h3 class="font-bold text-gray-900 text-base sm:text-lg">Daftar Pesanan Lunas</h3>
+            <h3 class="font-bold text-gray-900 text-base sm:text-lg">Daftar Pesanan</h3>
             <p class="text-xs sm:text-sm text-gray-500">Pesanan dengan status pembayaran Lunas.</p>
         </div>
         <div class="overflow-x-auto">
@@ -89,7 +89,7 @@
                         <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">No</th>
                         <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">ID Pesanan</th>
                         <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">Meja</th>
-                        <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">Total Item</th>
+                        <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">Items</th>
                         <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">Total</th>
                         <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">Waktu</th>
                         <th class="py-3 px-3 sm:px-6 text-left text-xs font-semibold text-gray-600">Status</th>
@@ -97,7 +97,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse($pesanans as $index => $pesanan)
+                     @forelse($pesanans as $index => $pesanan)
                     <tr class="hover:bg-gray-50">
                         <td class="py-3 px-3 sm:px-6">
                             <span class="text-xs sm:text-sm text-gray-600">{{ $pesanans->firstItem() + $index }}</span>
@@ -115,7 +115,7 @@
                             <span class="font-bold text-gray-900 text-xs sm:text-sm">Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</span>
                         </td>
                         <td class="py-3 px-3 sm:px-6">
-                            <span class="text-xs sm:text-sm text-gray-500">{{ $pesanan->created_at->translatedFormat('d M Y, H:i') }}</span>
+                            <span class="text-xs sm:text-sm text-gray-500">{{ $pesanan->created_at->format('H:i') }}</span>
                         </td>
                         <td class="py-3 px-3 sm:px-6">
                             @if($pesanan->status_pesanan == 'Menunggu')

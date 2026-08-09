@@ -71,10 +71,15 @@
             }
             
             localStorage.setItem('cart_meja_' + token, JSON.stringify(cart));
+            
+            // Update counter langsung tanpa delay
             updateCartCount();
             
-            // Animasi sederhana saat ditambahkan
-            alert(nama + ' berhasil ditambahkan ke keranjang!');
+            // Animasi badge counter
+            animateCartBadge();
+            
+            // Notifikasi
+            showNotification(nama + ' ditambahkan ke keranjang!');
         }
 
         function updateCartCount() {
@@ -89,7 +94,60 @@
             }
         }
 
+        function animateCartBadge() {
+            let cartCountEl = document.getElementById('cart-count-footer');
+            if(cartCountEl) {
+                cartCountEl.style.transform = 'scale(1.3)';
+                cartCountEl.style.transition = 'transform 0.2s ease';
+                setTimeout(() => {
+                    cartCountEl.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }
+
+        function showNotification(message) {
+            // Cek apakah sudah ada notifikasi
+            let existingNotif = document.getElementById('cart-notification');
+            if(existingNotif) {
+                existingNotif.remove();
+            }
+            
+            // Buat elemen notifikasi
+            let notif = document.createElement('div');
+            notif.id = 'cart-notification';
+            notif.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium';
+            notif.style.animation = 'slideIn 0.3s ease';
+            notif.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i>' + message;
+            
+            // Tambahkan ke DOM
+            document.body.appendChild(notif);
+            
+            // Hapus setelah 2 detik
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    notif.remove();
+                }, 300);
+            }, 2000);
+        }
+
+        // Inject CSS untuk animasi
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Jalankan saat DOM ready dan langsung saat script dimuat
         document.addEventListener('DOMContentLoaded', updateCartCount);
+        updateCartCount();
     </script>
 </body>
 </html>
