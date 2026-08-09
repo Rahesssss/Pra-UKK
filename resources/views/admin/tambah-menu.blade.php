@@ -60,9 +60,10 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Kategori</label>
                     <select name="kategori" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none transition bg-white">
                         <option value="" disabled selected>Pilih Kategori</option>
-                        <option value="Makanan" {{ old('kategori') == 'Makanan' ? 'selected' : '' }}>Makanan</option>
+                        <option value="Paket Gorengan" {{ old('kategori') == 'Paket Gorengan' ? 'selected' : '' }}>Paket Gorengan</option>
                         <option value="Minuman" {{ old('kategori') == 'Minuman' ? 'selected' : '' }}>Minuman</option>
-                        <option value="Snack" {{ old('kategori') == 'Snack' ? 'selected' : '' }}>Snack</option>
+                        <option value="Mie" {{ old('kategori') == 'Mie' ? 'selected' : '' }}>Mie</option>
+                        <option value="Nasi" {{ old('kategori') == 'Nasi ' ? 'selected' : '' }}>Nasi</option>
                     </select>
                 </div>
 
@@ -90,8 +91,9 @@
                 </div>
 
                 <label class="relative inline-flex items-center cursor-pointer">
+                    <!-- Ubah nilai default checked dan hidden value menjadi 'tersedia' -->
                     <input type="checkbox" id="statusToggle" class="sr-only" checked>
-                    <input type="hidden" name="status_tersedia" id="statusValue" value="1">
+                    <input type="hidden" name="status_tersedia" id="statusValue" value="tersedia">
 
                     <div class="w-12 h-7 bg-orange-500 rounded-full transition-colors duration-300" id="toggleBg"></div>
                     <div id="toggleCircle" class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 transform translate-x-5 shadow-sm"></div>
@@ -171,7 +173,7 @@
             previewImage();
         });
 
-        // 3. TOGGLE STATUS
+        // 3. TOGGLE STATUS (Diubah ke string 'tersedia' dan 'habis')
         const toggle = document.getElementById("statusToggle");
         const value = document.getElementById("statusValue");
         const circle = document.getElementById("toggleCircle");
@@ -180,17 +182,25 @@
 
         toggle.addEventListener("change", function() {
             if (this.checked) {
-                value.value = 1;
-                circle.style.transform = "translateX(20px)";
+                value.value = "tersedia";
+                // Menggunakan manipulasi class Tailwind agar transisi mulus
+                circle.classList.remove("translate-x-0");
+                circle.classList.add("translate-x-5");
+                
                 bg.classList.replace("bg-gray-300", "bg-orange-500");
                 text.innerText = "Tersedia";
-                text.classList.replace("text-red-500", "text-gray-700");
+                text.classList.remove("text-red-500");
+                text.classList.add("text-gray-700");
             } else {
-                value.value = 0;
-                circle.style.transform = "translateX(0px)";
+                value.value = "habis";
+                // Kembalikan ke posisi awal
+                circle.classList.remove("translate-x-5");
+                circle.classList.add("translate-x-0");
+                
                 bg.classList.replace("bg-orange-500", "bg-gray-300");
                 text.innerText = "Habis";
-                text.classList.replace("text-gray-700", "text-red-500");
+                text.classList.remove("text-gray-700");
+                text.classList.add("text-red-500");
             }
         });
     });

@@ -25,7 +25,6 @@
             @method('PUT')
 
             {{-- ================= FOTO MENU ================= --}}
-            {{-- ================= FOTO MENU ================= --}}
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Foto Menu</label>
                 <input type="file" name="gambar" id="gambar" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden">
@@ -60,9 +59,10 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Kategori</label>
                     <select name="kategori" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none transition bg-gray-50">
-                        <option value="Makanan" {{ old('kategori', $menu->kategori) == 'Makanan' ? 'selected' : '' }}>Makanan</option>
-                        <option value="Minuman" {{ old('kategori', $menu->kategori) == 'Minuman' ? 'selected' : '' }}>Minuman</option>
-                        <option value="Snack" {{ old('kategori', $menu->kategori) == 'Snack' ? 'selected' : '' }}>Snack</option>
+                        <option value="Paket Gorengan" {{ old('kategori') == 'Paket Gorengan' ? 'selected' : '' }}>Paket Gorengan</option>
+                        <option value="Minuman" {{ old('kategori') == 'Minuman' ? 'selected' : '' }}>Minuman</option>
+                        <option value="Mie" {{ old('kategori') == 'Mie' ? 'selected' : '' }}>Mie</option>
+                        <option value="Nasi" {{ old('kategori') == 'Nasi ' ? 'selected' : '' }}>Nasi</option>
                     </select>
                 </div>
 
@@ -90,16 +90,20 @@
                     <p class="text-xs text-gray-500 mt-0.5">Tentukan apakah menu ini siap dipesan saat ini.</p>
                 </div>
 
-                @php $status = old('status_tersedia', $menu->status_tersedia); @endphp
+                @php 
+                    // Mengambil nilai status ketersediaan, default 'tersedia' jika kosong
+                    $status = old('status_tersedia', $menu->status_tersedia); 
+                    $isChecked = ($status == 'tersedia');
+                @endphp
 
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="statusToggle" class="sr-only" {{ $status == 1 ? 'checked' : '' }}>
+                    <input type="checkbox" id="statusToggle" class="sr-only" {{ $isChecked ? 'checked' : '' }}>
                     <input type="hidden" name="status_tersedia" id="statusValue" value="{{ $status }}">
 
-                    <div class="w-12 h-7 rounded-full transition-colors duration-300 {{ $status == 1 ? 'bg-orange-500' : 'bg-gray-300' }}" id="toggleBg"></div>
-                    <div id="toggleCircle" class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 transform {{ $status == 1 ? 'translate-x-5' : 'translate-x-0' }} shadow-sm"></div>
-                    <span class="ml-3 text-sm font-bold {{ $status == 1 ? 'text-gray-700' : 'text-red-500' }}" id="statusText">
-                        {{ $status == 1 ? 'Tersedia' : 'Habis' }}
+                    <div class="w-12 h-7 rounded-full transition-colors duration-300 {{ $isChecked ? 'bg-orange-500' : 'bg-gray-300' }}" id="toggleBg"></div>
+                    <div id="toggleCircle" class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 transform {{ $isChecked ? 'translate-x-5' : 'translate-x-0' }} shadow-sm"></div>
+                    <span class="ml-3 text-sm font-bold {{ $isChecked ? 'text-gray-700' : 'text-red-500' }}" id="statusText">
+                        {{ $isChecked ? 'Tersedia' : 'Habis' }}
                     </span>
                 </label>
             </div>
@@ -183,7 +187,7 @@
             previewImage();
         });
 
-        // 3. TOGGLE STATUS
+        // 3. TOGGLE STATUS (Diubah ke string 'tersedia' dan 'habis')
         const toggle = document.getElementById("statusToggle");
         const value = document.getElementById("statusValue");
         const circle = document.getElementById("toggleCircle");
@@ -192,17 +196,25 @@
 
         toggle.addEventListener("change", function() {
             if (this.checked) {
-                value.value = 1;
-                circle.style.transform = "translateX(20px)";
+                value.value = "tersedia";
+                // Menggunakan manipulasi class Tailwind agar transisi mulus
+                circle.classList.remove("translate-x-0");
+                circle.classList.add("translate-x-5");
+                
                 bg.classList.replace("bg-gray-300", "bg-orange-500");
                 text.innerText = "Tersedia";
-                text.classList.replace("text-red-500", "text-gray-700");
+                text.classList.remove("text-red-500");
+                text.classList.add("text-gray-700");
             } else {
-                value.value = 0;
-                circle.style.transform = "translateX(0px)";
+                value.value = "habis";
+                // Kembalikan ke posisi awal
+                circle.classList.remove("translate-x-5");
+                circle.classList.add("translate-x-0");
+                
                 bg.classList.replace("bg-orange-500", "bg-gray-300");
                 text.innerText = "Habis";
-                text.classList.replace("text-gray-700", "text-red-500");
+                text.classList.remove("text-gray-700");
+                text.classList.add("text-red-500");
             }
         });
     });

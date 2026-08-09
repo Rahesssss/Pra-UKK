@@ -76,9 +76,9 @@
             </div>
 
             {{-- Button Print QR --}}
-            <a href="{{ $qrImage }}" download="QR_{{ $meja->nama_meja }}.png" target="_blank" class="w-full py-1.5 md:py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-xl text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition shadow-xs">
+            <button onclick="downloadQR('{{ $qrImage }}', 'QR_{{ $meja->nama_meja }}.png')" class="w-full py-1.5 md:py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-xl text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition shadow-xs">
                 <i class="fa-solid fa-print text-[10px]"></i> Print QR
-            </a>
+            </button>
         </div>
         @empty
         <div class="col-span-full py-16 text-center text-gray-400">
@@ -175,6 +175,26 @@
     function closeEditModal() {
         document.getElementById('editModal').classList.remove('flex');
         document.getElementById('editModal').classList.add('hidden');
+    }
+
+    // Function untuk download QR code dengan JavaScript Blob
+    async function downloadQR(url, filename) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Gagal mengambil gambar QR');
+            
+            const blob = await response.blob();
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Gagal mendownload QR Code. Silakan coba lagi atau refresh halaman.');
+        }
     }
 </script>
 @endsection

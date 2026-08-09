@@ -9,12 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pesanan', function (Blueprint $table) {
-            $table->string('id')->primary(); // Format ID: ORD-123456
-            $table->string('token_meja')->nullable();
-            $table->decimal('total_harga', 12, 2);
-            $table->string('status_pembayaran')->default('Belum Bayar'); // Belum Bayar, Lunas
-            $table->string('status_pesanan')->default('Menunggu Pembayaran'); // Menunggu Pembayaran, Diproses Dapur
+            $table->id();
+            $table->unsignedBigInteger('meja_id');
+            $table->integer('total_harga');
+            $table->string('status_pembayaran', 50)->default('Belum Bayar');
+            $table->string('status_pesanan', 50)->default('Menunggu Pembayaran');
             $table->timestamps();
+            
+            $table->foreign('meja_id')->references('id_meja')->on('meja')->onDelete('cascade');
         });
     }
 

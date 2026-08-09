@@ -10,6 +10,9 @@ class Meja extends Model
     // Beritahu Laravel bahwa Primary Key kita bernama 'id_meja'
     protected $primaryKey = 'id_meja';
     
+    // Tabel tidak memiliki kolom created_at/updated_at
+    public $timestamps = false;
+    
     // Izinkan kolom-kolom ini diisi data dari form
     protected $fillable = [
         'nama_meja',

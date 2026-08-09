@@ -24,12 +24,12 @@ class PelangganController extends Controller
             ], 403);
         }
 
-        // 1. Ambil semua menu yang tersedia
-        $menus = Menu::where('status_tersedia', 1)->get();
+        // 1. Ambil semua menu yang tersedia (diubah ke string enum 'tersedia')
+        $menus = Menu::where('status_tersedia', 'tersedia')->get();
 
         // 2. Ambil daftar kategori yang unik/berbeda saja (Misal: Makanan, Minuman)
         // Gunakan pluck('kategori') untuk menjadikannya array biasa
-        $kategoris = Menu::where('status_tersedia', 1)
+        $kategoris = Menu::where('status_tersedia', 'tersedia')
                          ->select('kategori')
                          ->distinct()
                          ->pluck('kategori');

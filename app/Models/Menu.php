@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Menu extends Model
 {
-    // Karena nama tabel 'menus', Laravel otomatis mendeteksinya
+    protected $table = 'menu';
+    // Karena nama tabel 'menu', Laravel otomatis mendeteksinya
     protected $primaryKey = 'id_menu';
     public $timestamps = false;
 
@@ -18,9 +19,8 @@ class Menu extends Model
         'gambar',
     ];
 
-    // Cast agar status_tersedia diperlakukan sebagai boolean/integer
+    // Dihapus cast integer karena status_tersedia sekarang bertipe ENUM ('tersedia', 'habis')
     protected $casts = [
-        'harga'           => 'integer',
-        'status_tersedia' => 'integer',
+        'harga' => 'integer',
     ];
 }

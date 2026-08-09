@@ -28,7 +28,7 @@ class MejaController extends Controller
         Meja::create([
             'nama_meja' => $request->nama_meja,
             'status' => $request->status,
-            'token' => Str::random(8), // Generate otomatis 8 huruf/angka acak (Contoh: xK9aLp2z)
+            'token' => Str::random(20), // Generate otomatis 20 huruf/angka acak
         ]);
 
         return redirect()->back()->with('success', 'Meja baru berhasil ditambahkan!');

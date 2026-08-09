@@ -42,7 +42,7 @@
     </header>
 
     {{-- KONTEN UTAMA KERANJANG --}}
-    <main class="max-w-md mx-auto px-4 py-5">
+    <main class="max-w-md mx-auto px-4 py-5 pb-32">
         <div id="cart-items-container" class="space-y-3">
             {{-- Item dari localStorage akan muncul di sini --}}
         </div>
@@ -61,79 +61,49 @@
     </main>
 
     {{-- ================= STICKY FOOTER ================= --}}
-<div
-    id="cart-summary"
-    class="fixed inset-x-0 bottom-0 z-50">
-
-    {{-- Background putih --}}
-    <div class="bg-white border-t border-gray-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)]">
-
-        <div class="max-w-md mx-auto px-4 py-4">
-            {{-- Ringkasan --}}
-            <div class="bg-gray-50 border rounded-xl p-3 mb-3">
-                <div class="flex justify-between text-sm text-gray-600">
-                    <span>
-                        Total Item
-                        (<span id="total-items">0</span> pesanan)
-                    </span>
-                    <span
-                        id="subtotal-harga"
-                        class="font-semibold">
-                        Rp 0
-                    </span>
+    <div id="cart-summary" class="fixed inset-x-0 bottom-0 z-50">
+        <div class="bg-white border-t border-gray-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)]">
+            <div class="max-w-md mx-auto px-4 py-4">
+                {{-- Ringkasan --}}
+                <div class="bg-gray-50 border rounded-xl p-3 mb-3">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>
+                            Total Item
+                            (<span id="total-items">0</span> pesanan)
+                        </span>
+                        <span id="subtotal-harga" class="font-semibold">
+                            Rp 0
+                        </span>
+                    </div>
+                    <div class="border-t mt-2 pt-2 flex justify-between">
+                        <span class="font-bold">
+                            Total Pembayaran
+                        </span>
+                        <span id="total-bayar" class="font-bold text-orange-500 text-lg">
+                            Rp 0
+                        </span>
+                    </div>
                 </div>
-                <div class="border-t mt-2 pt-2 flex justify-between">
-                    <span class="font-bold">
-                        Total Pembayaran
-                    </span>
-                    <span
-                        id="total-bayar"
-                        class="font-bold text-orange-500 text-lg">
-                        Rp 0
-                    </span>
-                </div>
+
+                {{-- Tombol Checkout --}}
+                <button type="button" onclick="kirimPesanan()" class="w-full h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition flex items-center justify-center">
+                    <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pesanan & Bayar (QRIS)
+                </button>
             </div>
-
-            {{-- Tombol Checkout --}}
-            <button
-                type="button"
-                onclick="kirimPesanan()"
-                class="w-full h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition">
-
-                <i class="fa-solid fa-paper-plane mr-2"></i>
-
-                Kirim Pesanan & Bayar (QRIS)
-
-            </button>
-
         </div>
-
     </div>
-
-</div>
 
     {{-- SCRIPT PENGELOLA KERANJANG & MIDTRANS --}}
     <script>
-        // Fungsi universal untuk menarik data dari local storage berawalan cart_meja_
+        const storageKey = 'cart_meja_{{ $meja->token }}';
+
         function getCart() {
-            let data = null;
-            // Cari dari semua key yang ada di localStorage
-            for (let i = 0; i < localStorage.length; i++) {
-                let key = localStorage.key(i);
-                if (key && key.startsWith('cart_meja_')) {
-                    data = localStorage.getItem(key);
-                    if (data && data !== '[]' && data !== 'null') {
-                        break; 
-                    }
-                }
-            }
+            let data = localStorage.getItem(storageKey);
             return data ? JSON.parse(data) : [];
         }
 
         function saveCart(cart) {
-            // Simpan kembali ke key meja aktif saat ini
-            const activeKey = 'cart_meja_{{ $meja->token }}';
-            localStorage.setItem(activeKey, JSON.stringify(cart));
+            localStorage.setItem(storageKey, JSON.stringify(cart));
             renderCart();
         }
 
@@ -164,9 +134,12 @@
 
                 html += `
                     <div class="bg-white border border-gray-100 rounded-2xl p-3.5 shadow-xs flex items-center justify-between gap-3">
-                        <div class="flex-1">
-                            <h4 class="font-bold text-sm text-gray-900 leading-tight">${item.nama}</h4>
-                            <p class="text-xs text-orange-600 font-extrabold mt-1">Rp ${formatRupiah(item.harga)}</p>
+                        <div class="flex items-center gap-3">
+                            <img src="/uploads/menu/${item.gambar}" alt="${item.nama}" class="w-14 h-14 object-cover rounded-xl border border-gray-100">
+                            <div>
+                                <h4 class="font-bold text-sm text-gray-900 leading-tight">${item.nama}</h4>
+                                <p class="text-xs text-orange-600 font-extrabold mt-1">Rp ${formatRupiah(item.harga)}</p>
+                            </div>
                         </div>
 
                         <div class="flex items-center gap-2.5 bg-gray-50 border border-gray-200 rounded-xl p-1">
@@ -212,61 +185,39 @@
                 return;
             }
 
-            let subtotal = 0;
-            cart.forEach(item => subtotal += (item.harga * item.qty));
-
             const btnSubmit = document.querySelector('button[onclick="kirimPesanan()"]');
-            const originalText = btnSubmit.innerHTML;
-            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan ke Midtrans...';
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Menghubungkan ke Midtrans...';
             btnSubmit.disabled = true;
 
             try {
-                const response = await fetch('{{ route("pelanggan.checkout") }}', {
-                    method: 'POST',
+                let response = await fetch("{{ route('pesanan.store') }}", {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
                     },
                     body: JSON.stringify({
-                        token_meja: '{{ $meja->token }}',
-                        items: cart,
-                        total_harga: subtotal
+                        token_meja: "{{ $meja->token }}",
+                        pesanan: cart
                     })
                 });
 
-                const data = await response.json();
+                let result = await response.json();
 
-                if (data.snapToken) {
-                    window.snap.pay(data.snapToken, {
-                        onSuccess: function(result){
-                            alert('Pembayaran berhasil! Pesanan diproses.');
-                            // Bersihkan local storage
-                            for (let i = 0; i < localStorage.length; i++) {
-                                let key = localStorage.key(i);
-                                if (key && key.startsWith('cart_meja_')) {
-                                    localStorage.removeItem(key);
-                                }
-                            }
-                            window.location.href = '{{ route("pelanggan.sukses") }}';
-                        },
-                        onPending: function(result){
-                            alert('Menunggu pembayaran Anda!');
-                        },
-                        onError: function(result){
-                            alert('Pembayaran gagal!');
-                        },
-                        onClose: function(){
-                            alert('Anda menutup popup sebelum menyelesaikan pembayaran.');
-                        }
-                    });
+                if (response.ok && result.status === 'success') {
+                    // JANGAN hapus keranjang di sini agar jika user batal, keranjang masih ada
+                    
+                    // REDIRECT PELANGGAN KE HALAMAN PEMBAYARAN MIDTRANS
+                    window.location.href = result.payment_url;
                 } else {
-                    alert('Gagal mengambil token pembayaran: ' + (data.message || 'Kesalahan server'));
+                    alert('Gagal membuat pesanan: ' + (result.message || 'Terjadi kesalahan'));
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pesanan & Bayar (QRIS)';
+                    btnSubmit.disabled = false;
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan jaringan atau server.');
-            } finally {
-                btnSubmit.innerHTML = originalText;
+                alert('Terjadi kesalahan sistem.');
+                console.error(error);
+                btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pesanan & Bayar (QRIS)';
                 btnSubmit.disabled = false;
             }
         }

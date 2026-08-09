@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MejaController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\OrderController;
 
 // 1. Saat membuka http://127.0.0.1:8000/, langsung masuk ke halaman login
 Route::get('/', [LoginController::class, 'showLoginForm']);
@@ -45,12 +46,14 @@ Route::get('/menu/{token}', [PelangganController::class, 'index'])->name('pelang
 // Rute untuk halaman pesanan pelanggan berdasarkan token meja
 Route::get('/menu/{token}/pesanan', [PelangganController::class, 'pesanan'])->name('pelanggan.pesanan');
 
-use App\Http\Controllers\OrderController;
+// Route untuk mengirim pesanan dari keranjang (AJAX)
+Route::post('/pesanan/store', [OrderController::class, 'store'])->name('pesanan.store');
 
-// Route untuk menerima data keranjang dari Javascript dan mengirimkan Token Midtrans
-Route::post('/pelanggan/checkout', [OrderController::class, 'checkout'])->name('pelanggan.checkout');
+// Route untuk menerima webhook/notifikasi dari Midtrans (harus POST)
+Route::post('/midtrans-callback', [OrderController::class, 'callback']);
 
 // Route untuk menampilkan halaman sukses setelah pelanggan selesai bayar
-Route::get('/pesanan-sukses', function () {
-    return "<h1>Pembayaran Berhasil! Pesanan Anda sedang diproses.</h1>"; // Nanti bisa diganti dengan tampilan Blade yang bagus
-})->name('pelanggan.sukses');
+Route::get('/pesanan-sukses/{token}', [OrderController::class, 'sukses'])->name('pesanan.sukses');
+
+// Route untuk menampilkan histori pesanan pelanggan
+Route::get('/menu/{token}/histori', [OrderController::class, 'histori'])->name('pelanggan.histori');

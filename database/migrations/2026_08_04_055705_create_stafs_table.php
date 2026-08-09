@@ -12,14 +12,14 @@ return new class extends Migration
             // 1. id_staf: int, Primary Key, Auto Increment
             $table->increments('id_staf');
             
-            // 2. username: varchar(50), Not Null
-            $table->string('username', 50);
+            // 2. username: varchar(15), Not Null
+            $table->string('username', 15);
             
-            // 3. password: varchar(255), Not Null
-            $table->string('password', 255);
+            // 3. password: varchar(50), Not Null
+            $table->string('password', 50);
             
-            // 4. nama_staf: varchar(100), Not Null
-            $table->string('nama_staf', 100);
+            // 4. nama_staf: varchar(50), Not Null
+            $table->string('nama_staf', 50);
             
         });
     }

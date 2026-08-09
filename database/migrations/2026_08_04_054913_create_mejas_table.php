@@ -10,10 +10,9 @@ return new class extends Migration
     {
         Schema::create('meja', function (Blueprint $table) {
             $table->id('id_meja'); // Primary Key (Otomatis INT, Auto Increment)
-            $table->string('nama_meja', 50); // Contoh: "Meja 1"
+            $table->string('nama_meja', 15); // Contoh: "Meja 1"
             $table->enum('status', ['Active', 'Nonaktif'])->default('Active'); // Hanya bisa diisi 2 nilai ini
             $table->string('token', 20)->unique(); // Kode acak QR (Otomatis Unique)
-            $table->timestamps(); // Otomatis membuat kolom created_at & updated_at
         });
     }
     public function down(): void

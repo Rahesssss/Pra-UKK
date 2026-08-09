@@ -89,7 +89,8 @@
                         </td>
                         <td class="py-3 md:py-4 px-4 md:px-6 font-semibold text-gray-900">Rp {{ number_format($menu->harga, 0, ',', '.') }}</td>
                         <td class="py-3 md:py-4 px-4 md:px-6">
-                            @if($menu->status_tersedia == 1)
+                            {{-- Cek apakah status bernilai 'tersedia' --}}
+                            @if($menu->status_tersedia == 'tersedia')
                             <span class="px-2.5 py-1 bg-green-50 text-green-600 border border-green-200 rounded-full text-xs font-bold">Tersedia</span>
                             @else
                             <span class="px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full text-xs font-bold">Habis</span>
@@ -105,7 +106,7 @@
                     <tr>
                         <td colspan="6" class="py-16 text-center text-gray-400">
                             <i class="fa-solid fa-burger text-4xl mb-3"></i>
-                            <p class="text-base font-semibold text-gray-600">Menu tidak ditemukan</p>
+                            <p class="text-base font-semibold text-gray-600">Menu tidak ditemukan/Kosong</p>
                         </td>
                     </tr>
                     @endforelse

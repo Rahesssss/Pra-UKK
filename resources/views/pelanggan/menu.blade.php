@@ -46,12 +46,12 @@
             <div class="p-3 flex flex-col flex-1">
                 <span class="text-[10px] text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full w-fit font-semibold">{{ $menu->kategori ?? 'Makanan' }}</span>
                 <h3 class="font-bold text-sm mt-1.5 text-gray-900 leading-tight">{{ $menu->nama_menu ?? 'Nama Menu' }}</h3>
-                <!-- <p class="text-xs text-gray-400 line-clamp-1 mt-0.5 mb-2">{{ $menu->deskripsi ?? 'Deskripsi menu' }}</p> -->
                 
                 <div class="flex items-center justify-between mt-auto pt-2">
                     <span class="font-extrabold text-gray-800 text-sm">Rp {{ number_format($menu->harga ?? 15000, 0, ',', '.') }}</span>
                     
-                    <button onclick="tambahKeKeranjang('{{ $menu->id_menu ?? 1 }}', '{{ $menu->nama_menu }}', {{ $menu->harga ?? 15000 }})" class="py-1.5 px-3 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center gap-1 shadow-sm">
+                    {{-- DISAMAKAN NAMA FUNGSINYA MENJADI addToCart DAN MENGIRIM PARAMETER GAMBAR --}}
+                    <button onclick="addToCart('{{ $menu->id_menu ?? 1 }}', '{{ $menu->nama_menu }}', {{ $menu->harga ?? 15000 }}, '{{ $menu->gambar ?? '' }}')" class="py-1.5 px-3 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center gap-1 shadow-sm">
                         <i class="fa-solid fa-plus text-[9px]"></i> Tambah
                     </button>
                 </div>
@@ -71,10 +71,35 @@
     </div>
 
     <script>
+        // FUNGSI UTAMA UNTUK MENAMBAH KE KERANJANG
+        function addToCart(id, nama, harga, gambar) {
+            let storageKey = 'cart_meja_{{ $meja->token }}';
+            let cart = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+            // Cek apakah item dengan ID yang sama sudah ada di keranjang
+            let existingIndex = cart.findIndex(item => item.id == id);
+
+            if (existingIndex > -1) {
+                // Jika sudah ada, tambahkan quantity-nya saja
+                cart[existingIndex].qty += 1;
+            } else {
+                // Jika belum ada, masukkan sebagai item baru beserta gambarnya
+                cart.push({
+                    id: id,
+                    nama: nama,
+                    harga: harga,
+                    gambar: gambar,
+                    qty: 1
+                });
+            }
+
+            localStorage.setItem(storageKey, JSON.stringify(cart));
+            alert(nama + ' berhasil ditambahkan ke keranjang!');
+        }
+
         let currentKategori = 'semua';
 
         document.addEventListener('DOMContentLoaded', function() {
-            
             // 1. Fitur Search via Input
             const searchInput = document.getElementById('search-menu');
             if(searchInput) {
@@ -86,22 +111,17 @@
             
             catButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // Set kategori saat ini berdasarkan tombol yang diklik
                     currentKategori = this.getAttribute('data-kategori');
                     
-                    // Kembalikan semua tombol ke warna default (Putih)
                     catButtons.forEach(b => {
                         b.className = 'cat-btn px-4 py-1.5 border text-xs font-bold rounded-full whitespace-nowrap transition bg-white text-gray-600 border-gray-200 hover:bg-gray-50';
                     });
                     
-                    // Ubah HANYA tombol yang sedang diklik menjadi warna Oranye
                     this.className = 'cat-btn px-4 py-1.5 border text-xs font-bold rounded-full whitespace-nowrap transition bg-orange-500 text-white border-transparent shadow-sm';
                     
-                    // Terapkan filter ke daftar menu
                     applyFilter();
                 });
             });
-
         });
 
         // 3. Fungsi Utama untuk Menyaring (Filter) Data
@@ -126,7 +146,6 @@
                 }
             });
 
-            // Tampilkan Pesan "Menu tidak ditemukan" jika kosong
             const noResult = document.getElementById('no-result');
             if (noResult) {
                 if (visibleCount === 0) {

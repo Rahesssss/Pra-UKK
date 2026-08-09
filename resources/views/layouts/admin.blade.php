@@ -86,6 +86,9 @@
 
             <div class="flex items-center gap-4">
 
+                {{-- Tampilkan Nama Staf dari Session --}}
+                <span class="text-sm font-semibold text-gray-700">{{ session('nama_staf') }}</span>
+
                 <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                     <i class="fa-solid fa-user"></i>
                 </div>

@@ -8,7 +8,7 @@ return new class extends Migration
 {
 public function up(): void
     {
-        Schema::create('menus', function (Blueprint $table) {
+        Schema::create('menu', function (Blueprint $table) {
             // 1. id_menu: int, Primary Key, Auto Increment
             $table->increments('id_menu'); 
             
@@ -21,19 +21,17 @@ public function up(): void
             // 4. harga: int, Not Null
             $table->integer('harga');
             
-            // 5. status_tersedia: tinyint(1), Not Null, Default 1
-            $table->tinyInteger('status_tersedia')->default(1);
+            // 5. status_tersedia: enum('tersedia', 'habis'), Not Null, Default 'tersedia' (Diubah dari tinyInteger)
+            $table->enum('status_tersedia', ['tersedia', 'habis'])->default('tersedia');
             
             // 6. gambar: varchar(255), Not Null
             $table->string('gambar', 255);
             
-            // Catatan: Jika di database aslimu tidak ada kolom created_at 
-            // dan updated_at, jangan gunakan $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('menus');
+        Schema::dropIfExists('menu');
     }
 };

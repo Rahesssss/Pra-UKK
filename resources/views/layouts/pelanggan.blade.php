@@ -39,7 +39,7 @@
     {{-- Bottom Navigation (Footer Layout) --}}
     <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div class="max-w-4xl mx-auto px-4 py-3 grid grid-cols-3 text-center">
-            <a href="{{ route('pelanggan.menu', $meja->token) }}" class="flex flex-col items-center justify-center gap-1 text-orange-500">
+            <a href="{{ route('pelanggan.menu', $meja->token) }}" class="flex flex-col items-center justify-center gap-1 {{ request()->routeIs('pelanggan.menu') ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500' }}">
                 <i class="fa-solid fa-book-open text-xl"></i>
                 <span class="text-[10px] font-semibold">Menu</span>
             </a>
@@ -50,7 +50,7 @@
                 </div>
                 <span class="text-[10px] font-semibold">Pesanan</span>
             </a>
-            <a href="#" class="flex flex-col items-center justify-center gap-1 text-gray-400">
+            <a href="{{ route('pelanggan.histori', $meja->token) }}" class="flex flex-col items-center justify-center gap-1 {{ request()->routeIs('pelanggan.histori') ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500' }}">
                 <i class="fa-solid fa-clipboard-list text-xl"></i>
                 <span class="text-[10px] font-semibold">Histori Pesanan</span>
             </a>

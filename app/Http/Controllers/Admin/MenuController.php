@@ -22,10 +22,11 @@ class MenuController extends Controller
             $search = $request->search;
             $query->where('nama_menu', 'like', '%' . $search . '%');
         } elseif ($request->has('status') && $request->status != '' && $request->status != 'semua') {
+            // Diubah mengecek string enum 'tersedia' atau 'habis'
             if ($request->status == 'tersedia') {
-                $query->where('status_tersedia', 1);
+                $query->where('status_tersedia', 'tersedia');
             } elseif ($request->status == 'habis') {
-                $query->where('status_tersedia', 0);
+                $query->where('status_tersedia', 'habis');
             }
         }
 
@@ -48,10 +49,13 @@ class MenuController extends Controller
     {
         $request->validate([
             'nama_menu' => 'required|string|max:100',
-            'harga' => 'required|numeric',
+            'harga' => 'required|numeric|min:1000|max:1000000', // Batas Rp 1.000 - Rp 10.000.00
             'kategori' => 'required|string|max:50',
-            'status_tersedia' => 'required|integer',
+            'status_tersedia' => 'required|in:tersedia,habis',
             'gambar' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'harga.min' => 'Harga minimal Rp 1.000',
+            'harga.max' => 'Harga maksimal Rp 1.000.000',
         ]);
 
         $namaFile = null;
@@ -95,10 +99,13 @@ class MenuController extends Controller
         // Validasi, perhatikan tambahan validasi gambar
         $request->validate([
             'nama_menu' => 'required|string|max:100',
-            'harga' => 'required|numeric',
+            'harga' => 'required|numeric|min:1000|max:1000000', // Batas Rp 1.000 - Rp 1.000.000
             'kategori' => 'required|string|max:50',
-            'status_tersedia' => 'required|integer',
+            'status_tersedia' => 'required|in:tersedia,habis', // Validasi enum
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Bisa diisi gambar baru, bisa kosong
+        ], [
+            'harga.min' => 'Harga minimal Rp 1.000',
+            'harga.max' => 'Harga maksimal Rp 1.000.000',
         ]);
 
         $menu = Menu::findOrFail($id);
