@@ -5,14 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Login</title>
-
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="bg-gray-100 font-sans">
-
     {{-- Container utama agar card berada di tengah --}}
     <div class="min-h-screen flex items-center justify-center px-4">
 
@@ -24,7 +21,7 @@
                 Dashboard Login
             </h1>
 
-            {{-- ================= NOTIFIKASI ERROR ================= --}}
+            {{--  NOTIFIKASI ERROR --}}
             @if ($errors->any())
             <div class="bg-red-50 border border-red-200 text-red-600 rounded-lg p-4 mb-6">
                 <div class="flex items-center gap-2 mb-2 font-bold text-sm">
@@ -39,7 +36,7 @@
             </div>
             @endif
 
-            {{-- ================= NOTIFIKASI SUKSES (Misal dari Logout) ================= --}}
+            {{--  NOTIFIKASI SUKSES (Misal dari Logout) --}}
             @if (session('success'))
             <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-6 text-sm flex items-center gap-2">
                 <i class="fa-solid fa-circle-check"></i>
@@ -51,7 +48,7 @@
             <form action="{{ route('admin.login.submit') }}" method="POST">
                 @csrf
 
-                {{-- ================= Username ================= --}}
+                {{--  Username  --}}
                 <div class="mb-5">
                     <label class="block text-sm font-semibold mb-2">Username</label>
                     <div class="relative">
@@ -66,7 +63,7 @@
                     </div>
                 </div>
 
-                {{-- ================= Password ================= --}}
+                {{-- Password --}}
                 <div class="mb-6">
                     <label class="block text-sm font-semibold mb-2">Password</label>
                     <div class="relative">

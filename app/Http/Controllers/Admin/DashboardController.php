@@ -5,31 +5,61 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Pesanan;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
         // Ensure the user is authenticated as staff
         if (!session()->has('staf_id')) {
             return redirect('/admin/login');
         }
 
-        // Eager load related models to prevent N+1 queries
-        // Tampilkan pesanan 'Menunggu', 'Sedang Dimasak', dan 'Selesai' (jika waktu update kurang dari 3 menit yang lalu)
+        // Ambil tanggal dari request, default ke hari ini
+        $tanggal = $request->input('tanggal', Carbon::today()->toDateString());
+        // Validasi format tanggal
+        try {
+            $selectedDate = Carbon::parse($tanggal);
+        } catch (\Exception $e) {
+            $selectedDate = Carbon::today();
+            $tanggal = $selectedDate->toDateString();
+        }
+
+        // Query pesanan berdasarkan tanggal yang dipilih
         $pesanans = Pesanan::with(['meja', 'detailPesanan.menu'])
-            ->where(function($query) {
+            ->where(function($query) use ($selectedDate) {
                 $query->whereIn('status_pesanan', ['Menunggu', 'Sedang Dimasak'])
-                      ->orWhere(function($q) {
-                          $q->where('status_pesanan', 'Selesai')
-                            ->where('updated_at', '>=', now()->subMinutes(3));
+                      ->orWhere(function($q) use ($selectedDate) {
+                          $q->where('status_pesanan', 'Selesai');
                       });
             })
-            ->orderBy('created_at', 'desc')
+            ->whereDate('created_at', $selectedDate->toDateString())
+            ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('admin.dashboard', compact('pesanans'));
+        // Ambil semua pesanan di tanggal tersebut untuk menentukan urutan
+        $semuaPesananHariIni = Pesanan::whereDate('created_at', $selectedDate->toDateString())
+            ->orderBy('created_at', 'asc')
+            ->orderBy('id', 'asc')
+            ->pluck('id');
+
+        // Buat mapping: pesanan_id => nomor_urut_hari_ini
+        $nomorUrut = [];
+        foreach ($semuaPesananHariIni as $index => $pesananId) {
+            $nomorUrut[$pesananId] = $index + 1;
+        }
+
+        $isToday = $selectedDate->isToday();
+        $tanggalLabel = $this->getTanggalLabel($selectedDate);
+
+        return view('admin.dashboard', compact(
+            'pesanans', 
+            'nomorUrut', 
+            'tanggal', 
+            'isToday',
+            'tanggalLabel'
+        ));
     }
 
     public function updateStatus(Request $request, $id)
@@ -42,6 +72,25 @@ class DashboardController extends Controller
         $pesanan->status_pesanan = $request->status_pesanan;
         $pesanan->save();
 
-        return back()->with('success', 'Status pesanan berhasil diubah!');
+        // Redirect kembali dengan mempertahankan parameter tanggal
+        $tanggal = $request->input('tanggal', Carbon::today()->toDateString());
+        
+        return redirect()
+            ->route('admin.dashboard', ['tanggal' => $tanggal])
+            ->with('success', 'Status pesanan berhasil diubah!');
+    }
+
+    //Helper Tanggal
+    private function getTanggalLabel(Carbon $date): string
+    {
+        if ($date->isToday()) {
+            return 'Hari Ini';
+        }
+
+        if ($date->isYesterday()) {
+            return 'Kemarin';
+        }
+
+        return $date->translatedFormat('d M Y');
     }
 }

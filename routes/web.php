@@ -19,8 +19,8 @@ Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.logi
 // 3. Rute untuk Logout Admin
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // 4. Rute Dashboard Admin
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+// 4. Rute Dashboard Admin
+Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
 // Admin Menu Routes
 Route::get('/admin/menu', [MenuController::class, 'index'])->name('admin.menu.index');

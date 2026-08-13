@@ -4,252 +4,288 @@
 @section('header-title', 'Antrean Pesanan')
 
 @section('content')
+
 @php
-    $pesanans = \App\Models\Pesanan::with(['meja', 'detailPesanan.menu'])
-        ->whereIn('status_pesanan', ['Menunggu', 'Sedang Dimasak', 'Selesai'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+    // Konfigurasi tampilan setiap status
+    $columns = [
+        'Menunggu' => [
+            'dot' => 'bg-gray-400',
+            'card' => 'bg-gray-50 border-gray-200',
+            'text' => 'text-orange-600',
+            'detail' => 'text-gray-600',
+            'border' => 'border-gray-200',
+            'button' => 'bg-orange-400 hover:bg-orange-500',
+            'next' => 'Sedang Dimasak',
+            'icon' => 'fa-fire-burner',
+            'action' => 'Masak',
+            'empty' => 'Belum ada pesanan',
+            'emptyIcon' => 'fa-inbox',
+        ],
+        'Sedang Dimasak' => [
+            'dot' => 'bg-blue-500',
+            'card' => 'bg-blue-50 border-blue-200',
+            'text' => 'text-blue-600',
+            'detail' => 'text-blue-800',
+            'border' => 'border-blue-200',
+            'button' => 'bg-green-500 hover:bg-green-600',
+            'next' => 'Selesai',
+            'icon' => 'fa-check',
+            'action' => 'Selesai',
+            'empty' => 'Tidak ada yang dimasak',
+            'emptyIcon' => 'fa-fire-burner',
+        ],
+        'Selesai' => [
+            'dot' => 'bg-green-500',
+            'card' => 'bg-green-50 border-green-200',
+            'text' => 'text-green-600',
+            'detail' => 'text-gray-500',
+            'border' => 'border-green-200',
+            'button' => '',
+            'next' => null,
+            'icon' => 'fa-circle-check',
+            'action' => 'Selesai',
+            'empty' => 'Belum ada yang selesai',
+            'emptyIcon' => 'fa-circle-check',
+        ],
+    ];
+
+    // Kelompokkan pesanan sekali agar tidak where() berulang
+    $groupedPesanans = $pesanans->groupBy('status_pesanan');
 @endphp
 
-{{-- ACTION BAR (Filter & Refresh) --}}
-<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+{{-- Filter & header --}}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
     <div class="flex items-center gap-2 relative" id="filter-wrapper">
-        <button id="btn-filter" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-            <i class="fa-solid fa-filter"></i> Filter
+        <button id="btn-filter" type="button"
+            class="flex items-center gap-2 px-3 md:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter</span>
         </button>
 
-        <div id="date-dropdown" class="hidden absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-50 dropdown-animate">
+        <div id="date-dropdown"
+            class="hidden absolute top-full left-0 mt-2 w-[calc(100vw-2rem)] max-w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-50">
             <div class="text-sm font-semibold text-gray-700 mb-3">Pilih Tanggal</div>
-            <input type="date" id="dp-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-3 bg-gray-50" />
+
+            <input type="date" id="dp-input" value="{{ $tanggal }}" max="{{ now()->toDateString() }}"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-3 bg-gray-50">
 
             <div class="grid grid-cols-3 gap-2 mb-4">
-                <button class="dp-shortcut px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-orange-500 hover:bg-orange-50 hover:text-orange-600 transition" data-target="today">Hari Ini</button>
-                <button class="dp-shortcut px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-orange-500 hover:bg-orange-50 hover:text-orange-600 transition" data-target="yesterday">Kemarin</button>
-                <button class="dp-shortcut px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-orange-500 hover:bg-orange-50 hover:text-orange-600 transition" data-target="week">7 Hari</button>
+                <button type="button" class="dp-shortcut px-2 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-lg text-xs font-medium transition" data-target="today">
+                    Hari Ini
+                </button>
+                <button type="button" class="dp-shortcut px-2 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-lg text-xs font-medium transition" data-target="yesterday">
+                    Kemarin
+                </button>
+                <button type="button" class="dp-shortcut px-2 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-lg text-xs font-medium transition" data-target="week">
+                    7 Hari
+                </button>
             </div>
 
             <div class="flex justify-end gap-2">
-                <button id="dp-cancel" class="px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
-                <button id="dp-apply" class="px-4 py-1.5 bg-orange-500 rounded-lg text-xs font-semibold text-white hover:bg-orange-600 transition">Terapkan</button>
+                <button type="button" id="dp-cancel"
+                    class="px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition">
+                    Batal
+                </button>
+                <button type="button" id="dp-apply"
+                    class="px-4 py-1.5 bg-orange-500 rounded-lg text-xs font-semibold text-white hover:bg-orange-600 transition">
+                    Terapkan
+                </button>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-600 min-w-[120px] justify-center">
+        <div class="flex items-center gap-2 px-3 md:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-600 min-w-[130px] md:min-w-[140px] justify-center">
             <i class="fa-regular fa-calendar"></i>
-            <span id="label-tanggal">Hari Ini</span>
+            <span id="label-tanggal">{{ $tanggalLabel }}</span>
         </div>
     </div>
 
-    <button onclick="window.location.reload()" class="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition shadow-sm">
-        <i class="fa-solid fa-rotate-right"></i> Refresh
-    </button>
+    <div class="flex flex-wrap items-center gap-2">
+        @if(!$isToday)
+            <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 font-medium">
+                <i class="fa-solid fa-clock-rotate-left shrink-0"></i>
+                <span>
+                    Menampilkan data:
+                    {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}
+                </span>
+            </div>
+        @endif
+
+        <a href="{{ route('admin.dashboard', ['tanggal' => $tanggal]) }}"
+            class="flex items-center gap-2 px-3 md:px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition shadow-sm">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span>Refresh</span>
+        </a>
+    </div>
 </div>
 
-{{-- KANBAN BOARD --}}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-start">
-    {{-- Kolom Menunggu --}}
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden min-h-[250px] md:min-h-[500px] flex flex-col">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
-                <h3 class="font-bold text-gray-800">Menunggu</h3>
-            </div>
-            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">{{ $menungguCount = $pesanans->where('status_pesanan', 'Menunggu')->count() }}</span>
-        </div>
-        <div class="p-3 flex flex-col gap-3 flex-1">
-            @php
-                $menungguItems = $pesanans->where('status_pesanan', 'Menunggu');
-            @endphp
-            @forelse($menungguItems as $pesanan)
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-orange-600">#ORD-{{ str_pad($pesanan->id, 3, '0', STR_PAD_LEFT) }}</span>
-                        <span class="text-[10px] text-gray-400">{{ $pesanan->created_at->diffForHumans() }}</span>
-                    </div>
-                    <h4 class="font-bold text-gray-900 mb-1">{{ $pesanan->meja->nama_meja }}</h4>
-                    <ul class="text-xs text-gray-600 mb-2 list-disc list-inside">
-                        @foreach($pesanan->detailPesanan as $detail)
-                            <li>{{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}</li>
-                        @endforeach
-                    </ul>
-                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-200">
-                        <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</span>
-                        <form action="{{ route('admin.dashboard.status', $pesanan->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status_pesanan" value="Sedang Dimasak">
-                            <button type="submit" class="px-2 py-1 bg-orange-400 text-white text-[10px] rounded hover:bg-orange-500">Masak</button>
-                        </form>
-                    </div>
-                </div>
-            @empty
-                <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
-                    <i class="fa-solid fa-inbox text-3xl"></i>
-                    <p>Belum ada pesanan</p>
-                </div>
-            @endforelse
-        </div>
-    </div>
+{{-- HP: 1 kolom | iPad: 2 kolom | Desktop: 3 kolom --}}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 items-start">
+    @foreach($columns as $status => $column)
+        @php $orders = $groupedPesanans->get($status, collect()); @endphp
 
-    {{-- Kolom Sedang Dimasak --}}
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden min-h-[250px] md:min-h-[500px] flex flex-col">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <h3 class="font-bold text-gray-800">Sedang Dimasak</h3>
-            </div>
-            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">{{ $pesanans->where('status_pesanan', 'Sedang Dimasak')->count() }}</span>
-        </div>
-        <div class="p-3 flex flex-col gap-3 flex-1">
-            @forelse($pesanans->where('status_pesanan', 'Sedang Dimasak') as $pesanan)
-                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-blue-600">#ORD-{{ str_pad($pesanan->id, 3, '0', STR_PAD_LEFT) }}</span>
-                        <span class="text-[10px] text-gray-400">{{ $pesanan->created_at->diffForHumans() }}</span>
-                    </div>
-                    <h4 class="font-bold text-gray-900 mb-1">{{ $pesanan->meja->nama_meja }}</h4>
-                    <ul class="text-xs text-blue-800 mb-2 list-disc list-inside">
-                        @foreach($pesanan->detailPesanan as $detail)
-                            <li>{{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}</li>
-                        @endforeach
-                    </ul>
-                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-blue-200">
-                        <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</span>
-                        <form action="{{ route('admin.dashboard.status', $pesanan->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status_pesanan" value="Selesai">
-                            <button type="submit" class="px-2 py-1 bg-green-500 text-white text-[10px] rounded hover:bg-green-600">Selesai</button>
-                        </form>
-                    </div>
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden min-h-[250px] md:min-h-[450px] xl:min-h-[500px] flex flex-col">
+            <div class="flex items-center justify-between p-3 md:p-4 border-b border-gray-100 bg-gray-50">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2.5 h-2.5 rounded-full {{ $column['dot'] }} shrink-0"></span>
+                    <h3 class="font-bold text-gray-800 truncate">
+                        {{ $status }}
+                        @if($status === 'Selesai' && $isToday)
+                            <span class="text-xs font-normal text-gray-400">(Auto-hide 3m)</span>
+                        @endif
+                    </h3>
                 </div>
-            @empty
-                <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
-                    <i class="fa-solid fa-fire-burner text-3xl"></i>
-                    <p>Tidak ada yang dimasak</p>
-                </div>
-            @endforelse
-        </div>
-    </div>
 
-    {{-- Kolom Selesai --}}
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden min-h-[250px] md:min-h-[500px] flex flex-col">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                <h3 class="font-bold text-gray-800">Selesai (Auto-hide 3m)</h3>
+                <span class="w-6 h-6 shrink-0 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                    {{ $orders->count() }}
+                </span>
             </div>
-            <span class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">{{ $pesanans->where('status_pesanan', 'Selesai')->count() }}</span>
-        </div>
-        <div class="p-3 flex flex-col gap-3 flex-1">
-            @forelse($pesanans->where('status_pesanan', 'Selesai') as $pesanan)
-                <div class="bg-green-50 p-3 rounded-lg border border-green-200 shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-green-600">#ORD-{{ str_pad($pesanan->id, 3, '0', STR_PAD_LEFT) }}</span>
-                        <span class="text-[10px] text-gray-400">{{ $pesanan->updated_at->format('H:i') }}</span>
+
+            <div class="p-2.5 md:p-3 flex flex-col gap-3 flex-1 overflow-y-auto">
+                @forelse($orders as $pesanan)
+                    <div class="{{ $column['card'] }} p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <span class="text-xs font-bold {{ $column['text'] }}">
+                                #ORD-{{ str_pad($nomorUrut[$pesanan->id] ?? 0, 3, '0', STR_PAD_LEFT) }}
+                            </span>
+
+                            <span class="text-[10px] text-gray-400 text-right whitespace-nowrap">
+                                @if($status === 'Selesai')
+                                    Selesai {{ $pesanan->updated_at->format('H:i') }}
+                                @else
+                                    {{ $pesanan->created_at->diffForHumans() }}
+                                @endif
+                            </span>
+                        </div>
+
+                        <h4 class="font-bold text-gray-900 mb-2 truncate">
+                            {{ $pesanan->meja->nama_meja }}
+                        </h4>
+
+                        @if($status !== 'Selesai')
+                            <ul class="text-xs {{ $column['detail'] }} mb-2 space-y-1">
+                                @foreach($pesanan->detailPesanan as $detail)
+                                    <li class="flex items-start gap-1">
+                                        <span class="shrink-0">•</span>
+                                        <span class="break-words">
+                                            {{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}
+                                        </span>
+                                    </li>
+
+                                    @if($detail->catatan_item)
+                                        <li class="flex items-start gap-1.5 ml-3 mt-0.5">
+                                            <i class="fa-solid fa-note-sticky text-amber-400 text-[9px] mt-0.5 shrink-0"></i>
+                                            <span class="text-[10px] text-amber-700 italic leading-snug break-words">
+                                                {{ $detail->catatan_item }}
+                                            </span>
+                                        </li>
+                                    @endif
+                                @endforeach
+                            </ul>
+
+                            @if($pesanan->catatan)
+                                <div class="flex items-start gap-2 px-2.5 py-2 bg-amber-50 border border-amber-200 rounded-lg mt-2 mb-2">
+                                    <i class="fa-solid fa-note-sticky text-amber-500 text-xs shrink-0 mt-0.5"></i>
+                                    <div class="min-w-0">
+                                        <p class="text-[9px] font-bold text-amber-600 uppercase tracking-wide mb-0.5">
+                                            Catatan Dapur
+                                        </p>
+                                        <p class="text-[11px] text-amber-800 leading-snug break-words">
+                                            {{ $pesanan->catatan }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            <div class="text-[10px] text-gray-500 mb-2">
+                                {{ $pesanan->detailPesanan->sum('jumlah') }} item pesanan
+                            </div>
+                        @endif
+
+                        <div class="flex justify-between items-center gap-2 mt-3 pt-2 border-t {{ $column['border'] }}">
+                            <span class="font-bold text-gray-900 text-sm whitespace-nowrap">
+                                Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}
+                            </span>
+
+                            @if($column['next'])
+                                <form action="{{ route('admin.dashboard.status', $pesanan->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="status_pesanan" value="{{ $column['next'] }}">
+                                    <input type="hidden" name="tanggal" value="{{ $tanggal }}">
+
+                                    <button type="submit"
+                                        class="px-3 py-1.5 {{ $column['button'] }} text-white text-[10px] font-semibold rounded-lg transition whitespace-nowrap">
+                                        <i class="fa-solid {{ $column['icon'] }} mr-1"></i>
+                                        {{ $column['action'] }}
+                                    </button>
+                                </form>
+                            @else
+                                <span class="flex items-center gap-1 text-xs font-bold text-green-700 whitespace-nowrap">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    Selesai
+                                </span>
+                            @endif
+                        </div>
                     </div>
-                    <h4 class="font-bold text-gray-900 mb-1">{{ $pesanan->meja->nama_meja }}</h4>
-                    <span class="text-xs font-bold text-green-700">Sudah Selesai</span>
-                </div>
-            @empty
-                <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
-                    <i class="fa-solid fa-circle-check text-3xl"></i>
-                    <p>Belum ada yang selesai</p>
-                </div>
-            @endforelse
+                @empty
+                    <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
+                        <i class="fa-solid {{ $column['emptyIcon'] }} text-3xl"></i>
+                        <p>{{ $column['empty'] }}</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
-    </div>
+    @endforeach
 </div>
+
 @endsection
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const routeDashboard = @json(route('admin.dashboard'));
+    const filterWrapper = document.getElementById('filter-wrapper');
     const btnFilter = document.getElementById('btn-filter');
     const dateDropdown = document.getElementById('date-dropdown');
-    const dpInput = document.getElementById('dp-input');
-    const labelTanggal = document.getElementById('label-tanggal');
+    const dateInput = document.getElementById('dp-input');
+    const btnApply = document.getElementById('dp-apply');
+    const btnCancel = document.getElementById('dp-cancel');
     const shortcuts = document.querySelectorAll('.dp-shortcut');
 
-    function toInputVal(date) {
-        return date.toISOString().split('T')[0];
-    }
+    const closeDropdown = () => dateDropdown.classList.add('hidden');
 
-    function setActiveShortcut(targetName) {
-        shortcuts.forEach(b => {
-            if (b.dataset.target === targetName) {
-                b.classList.remove('border-gray-200', 'text-gray-600');
-                b.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600');
-            } else {
-                b.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600');
-                b.classList.add('border-gray-200', 'text-gray-600');
-            }
-        });
-    }
-
-    dpInput.value = toInputVal(new Date());
-    setActiveShortcut('today');
-
-    btnFilter.addEventListener('click', (e) => {
+    btnFilter.addEventListener('click', e => {
         e.stopPropagation();
         dateDropdown.classList.toggle('hidden');
     });
 
-    document.addEventListener('click', (e) => {
-        if (!document.getElementById('filter-wrapper').contains(e.target)) {
-            dateDropdown.classList.add('hidden');
+    btnCancel.addEventListener('click', closeDropdown);
+
+    btnApply.addEventListener('click', () => {
+        if (dateInput.value) {
+            window.location.href = `${routeDashboard}?tanggal=${encodeURIComponent(dateInput.value)}`;
         }
     });
 
-    dpInput.addEventListener('change', () => {
-        shortcuts.forEach(b => {
-            b.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600');
-            b.classList.add('border-gray-200', 'text-gray-600');
+    // Shortcut tanggal
+    shortcuts.forEach(button => {
+        button.addEventListener('click', () => {
+            const date = new Date();
+            const target = button.dataset.target;
+
+            if (target === 'yesterday') date.setDate(date.getDate() - 1);
+            if (target === 'week') date.setDate(date.getDate() - 7);
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            dateInput.value = `${year}-${month}-${day}`;
         });
     });
 
-    shortcuts.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const targetBtn = e.target;
-            const action = targetBtn.dataset.target;
-            const d = new Date();
-
-            if (action === 'yesterday') d.setDate(d.getDate() - 1);
-            if (action === 'week') d.setDate(d.getDate() - 6);
-
-            dpInput.value = toInputVal(d);
-            setActiveShortcut(action);
-        });
+    document.addEventListener('click', e => {
+        if (!filterWrapper.contains(e.target)) closeDropdown();
     });
-
-    document.getElementById('dp-apply').addEventListener('click', () => {
-        const val = dpInput.value;
-        if (val) {
-            const todayVal = toInputVal(new Date());
-            let activeTarget = null;
-            shortcuts.forEach(b => {
-                if (b.classList.contains('border-orange-500')) {
-                    activeTarget = b.dataset.target;
-                }
-            });
-
-            if (val === todayVal || activeTarget === 'today') {
-                labelTanggal.textContent = 'Hari Ini';
-            } else if (activeTarget === 'yesterday') {
-                labelTanggal.textContent = 'Kemarin';
-            } else if (activeTarget === 'week') {
-                labelTanggal.textContent = '7 Hari Terakhir';
-            } else {
-                const d = new Date(val);
-                labelTanggal.textContent = d.toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
-            }
-        }
-        dateDropdown.classList.add('hidden');
-    });
-
-    document.getElementById('dp-cancel').addEventListener('click', () => {
-        dateDropdown.classList.add('hidden');
-    });
+});
 </script>
 @endpush
