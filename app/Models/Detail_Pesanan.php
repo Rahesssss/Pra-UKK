@@ -17,7 +17,6 @@ class Detail_Pesanan extends Model
         'jumlah',
         'harga',
         'total',
-        'catatan_item',
     ];
 
     public function menu()

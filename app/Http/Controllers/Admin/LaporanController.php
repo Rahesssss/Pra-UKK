@@ -17,10 +17,8 @@ class LaporanController extends Controller
         if (!session()->has('staf_id')) {
             return redirect('/admin/login');
         }
-
-        // ============================================================
+=
         // TENTUKAN MODE FILTER: bulanan atau custom range
-        // ============================================================
         $filterMode = $request->input('filter_mode', 'bulanan'); // 'bulanan' | 'custom'
 
         // --- Mode Bulanan ---
@@ -49,9 +47,7 @@ class LaporanController extends Controller
             $end_date   = $end_bulanan;
         }
 
-        // ============================================================
         // QUERY PESANAN
-        // ============================================================
         $pesanans = Pesanan::with(['meja', 'detailPesanan.menu'])
             ->where('status_pembayaran', 'Lunas')
             ->whereDate('created_at', '>=', $start_date)
@@ -60,9 +56,8 @@ class LaporanController extends Controller
             ->paginate(10)
             ->withQueryString(); // Pertahankan semua query param saat pagination
 
-        // ============================================================
-        // NOMOR URUT HARIAN (konsisten dengan dashboard)
-        // ============================================================
+
+        // NOMOR URUT HARIAN
         // Kumpulkan semua tanggal unik dalam hasil query
         $tanggalUnik = $pesanans->getCollection()
             ->pluck('created_at')
@@ -89,9 +84,7 @@ class LaporanController extends Controller
             return $pesanan;
         });
 
-        // ============================================================
-        // STATISTIK (hitung dari SEMUA data periode, bukan hanya halaman ini)
-        // ============================================================
+        // STATISTIK
         $allIds = Pesanan::where('status_pembayaran', 'Lunas')
             ->whereDate('created_at', '>=', $start_date)
             ->whereDate('created_at', '<=', $end_date)
@@ -107,9 +100,7 @@ class LaporanController extends Controller
             ->with('menu')
             ->first();
 
-        // ============================================================
         // DATA PENDUKUNG VIEW
-        // ============================================================
         // List bulan untuk dropdown
         $listBulan = [
             1  => 'Januari',  2  => 'Februari', 3  => 'Maret',

@@ -121,7 +121,17 @@
 {{-- HP: 1 kolom | iPad: 2 kolom | Desktop: 3 kolom --}}
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 items-start">
     @foreach($columns as $status => $column)
-        @php $orders = $groupedPesanans->get($status, collect()); @endphp
+        @php 
+            $orders = $groupedPesanans->get($status, collect()); 
+            
+            // FILTER BACKEND: Cegah order selesai tampil di awal jika umurnya > 5 menit
+            if ($status === 'Selesai' && $isToday) {
+                $orders = $orders->filter(function($pesanan) {
+                    // Hanya tampilkan jika waktu selesainya belum lewat 5 menit
+                    return $pesanan->updated_at->diffInMinutes(now()) < 5;
+                });
+            }
+        @endphp
 
         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden min-h-[250px] md:min-h-[450px] xl:min-h-[500px] flex flex-col">
             <div class="flex items-center justify-between p-3 md:p-4 border-b border-gray-100 bg-gray-50">
@@ -130,19 +140,23 @@
                     <h3 class="font-bold text-gray-800 truncate">
                         {{ $status }}
                         @if($status === 'Selesai' && $isToday)
-                            <span class="text-xs font-normal text-gray-400">(Auto-hide 3m)</span>
+                            <span class="text-xs font-normal text-gray-400">(Auto-hide 5m)</span>
                         @endif
                     </h3>
                 </div>
 
-                <span class="w-6 h-6 shrink-0 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                {{-- Tambahkan ID unik pada badge agar JS bisa mengurangi angka otomatis --}}
+                <span id="badge-{{ Str::slug($status) }}" class="w-6 h-6 shrink-0 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm transition-all duration-300">
                     {{ $orders->count() }}
                 </span>
             </div>
 
-            <div class="p-2.5 md:p-3 flex flex-col gap-3 flex-1 overflow-y-auto">
+            <div class="p-2.5 md:p-3 flex flex-col gap-3 flex-1 overflow-y-auto" id="container-{{ Str::slug($status) }}">
                 @forelse($orders as $pesanan)
-                    <div class="{{ $column['card'] }} p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                    {{-- Tambahkan class 'selesai-card' dan data attribute untuk timer JS --}}
+                    <div class="{{ $column['card'] }} p-3 rounded-lg border shadow-sm hover:shadow-md transition-all duration-500 @if($status === 'Selesai') selesai-card @endif" 
+                         @if($status === 'Selesai') data-time="{{ $pesanan->updated_at->timestamp }}" @endif>
+                         
                         <div class="flex justify-between items-start gap-2 mb-2">
                             <span class="text-xs font-bold {{ $column['text'] }}">
                                 #ORD-{{ str_pad($nomorUrut[$pesanan->id] ?? 0, 3, '0', STR_PAD_LEFT) }}
@@ -161,43 +175,28 @@
                             {{ $pesanan->meja->nama_meja }}
                         </h4>
 
-                        @if($status !== 'Selesai')
-                            <ul class="text-xs {{ $column['detail'] }} mb-2 space-y-1">
-                                @foreach($pesanan->detailPesanan as $detail)
-                                    <li class="flex items-start gap-1">
-                                        <span class="shrink-0">•</span>
-                                        <span class="break-words">
-                                            {{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}
-                                        </span>
-                                    </li>
+                        <ul class="text-xs {{ $column['detail'] }} mb-2 space-y-1">
+                            @foreach($pesanan->detailPesanan as $detail)
+                                <li class="flex items-start gap-1">
+                                    <span class="shrink-0">•</span>
+                                    <span class="wrap-break-word">
+                                        {{ $detail->jumlah }}x {{ $detail->menu->nama_menu }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
 
-                                    @if($detail->catatan_item)
-                                        <li class="flex items-start gap-1.5 ml-3 mt-0.5">
-                                            <i class="fa-solid fa-note-sticky text-amber-400 text-[9px] mt-0.5 shrink-0"></i>
-                                            <span class="text-[10px] text-amber-700 italic leading-snug break-words">
-                                                {{ $detail->catatan_item }}
-                                            </span>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
-
-                            @if($pesanan->catatan)
-                                <div class="flex items-start gap-2 px-2.5 py-2 bg-amber-50 border border-amber-200 rounded-lg mt-2 mb-2">
-                                    <i class="fa-solid fa-note-sticky text-amber-500 text-xs shrink-0 mt-0.5"></i>
-                                    <div class="min-w-0">
-                                        <p class="text-[9px] font-bold text-amber-600 uppercase tracking-wide mb-0.5">
-                                            Catatan Dapur
-                                        </p>
-                                        <p class="text-[11px] text-amber-800 leading-snug break-words">
-                                            {{ $pesanan->catatan }}
-                                        </p>
-                                    </div>
+                        @if($pesanan->catatan)
+                            <div class="flex items-start gap-2 px-2.5 py-2 bg-amber-50 border border-amber-200 rounded-lg mt-2 mb-2">
+                                <i class="fa-solid fa-note-sticky text-amber-500 text-xs shrink-0 mt-0.5"></i>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-bold text-amber-600 uppercase tracking-wide mb-0.5">
+                                        Catatan Dapur
+                                    </p>
+                                    <p class="text-[11px] text-amber-800 leading-snug break-words">
+                                        {{ $pesanan->catatan }}
+                                    </p>
                                 </div>
-                            @endif
-                        @else
-                            <div class="text-[10px] text-gray-500 mb-2">
-                                {{ $pesanan->detailPesanan->sum('jumlah') }} item pesanan
                             </div>
                         @endif
 
@@ -227,7 +226,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
+                    <div id="empty-state-{{ Str::slug($status) }}" class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
                         <i class="fa-solid {{ $column['emptyIcon'] }} text-3xl"></i>
                         <p>{{ $column['empty'] }}</p>
                     </div>
@@ -242,6 +241,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Date Picker
     const routeDashboard = @json(route('admin.dashboard'));
     const filterWrapper = document.getElementById('filter-wrapper');
     const btnFilter = document.getElementById('btn-filter');
@@ -266,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Shortcut tanggal
     shortcuts.forEach(button => {
         button.addEventListener('click', () => {
             const date = new Date();
@@ -286,6 +285,54 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', e => {
         if (!filterWrapper.contains(e.target)) closeDropdown();
     });
+
+    // Auto Hide 5 Menit
+    const isToday = @json($isToday);
+    
+    if (isToday) {
+        setInterval(() => {
+            // Ambil waktu saat ini (dalam detik)
+            const now = Math.floor(Date.now() / 1000); 
+            const selesaiCards = document.querySelectorAll('.selesai-card');
+            
+            selesaiCards.forEach(card => {
+                const updatedTime = parseInt(card.getAttribute('data-time'));
+                
+                // Jika selisih waktu sudah lebih dari 5 menit (300 detik)
+                if (now - updatedTime >= 300) {
+                    
+                    // Animasi mengecil dan menghilang
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
+                    
+                    // Hapus elemen dari DOM setelah animasi selesai
+                    setTimeout(() => {
+                        card.remove();
+                        
+                        // Kurangi jumlah angka pada badge atas
+                        const badgeSelesai = document.getElementById('badge-selesai');
+                        if(badgeSelesai) {
+                            let count = parseInt(badgeSelesai.innerText);
+                            if(count > 0) {
+                                badgeSelesai.innerText = count - 1;
+                            }
+                            
+                            // Jika sudah tidak ada card, kembalikan tampilan "Belum ada yang selesai"
+                            if(count - 1 === 0) {
+                                const containerSelesai = document.getElementById('container-selesai');
+                                containerSelesai.innerHTML = `
+                                    <div id="empty-state-selesai" class="flex flex-col items-center justify-center flex-1 text-gray-400 text-sm gap-2 py-12">
+                                        <i class="fa-solid fa-circle-check text-3xl"></i>
+                                        <p>Belum ada yang selesai</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }, 500); // 500ms mengikuti duration-500 di tailwind class
+                }
+            });
+        }, 10000); // Mengecek secara otomatis setiap 10 detik
+    }
 });
 </script>
 @endpush

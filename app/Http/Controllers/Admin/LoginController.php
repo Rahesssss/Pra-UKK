@@ -27,11 +27,7 @@ class LoginController extends Controller
 
         // 2. Cari data akun berdasarkan username
         $staf = Staf::where('username', $request->username)->first();
-
-        // 3. Pengecekan Aman: Jika akun TIDAK ADA atau PASSWORD SALAH
-        // if (!$staf || !Hash::check($request->password, $staf->password)) {
-        // Jika memakai password tanpa hash (plain text), gunakan kondisi ini:
-        if (!$staf || $request->password !== $staf->password) {
+        if (!$staf || !Hash::check($request->password, $staf->password)) {
 
             return redirect()->back()
                 ->withInput($request->only('username')) // Agar username yang sudah diketik tidak hilang

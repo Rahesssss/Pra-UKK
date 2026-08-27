@@ -15,9 +15,7 @@ class MenuController extends Controller
         if (!session()->has('staf_id')) {
             return redirect('/admin/login');
         }
-
         $query = Menu::query();
-
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where('nama_menu', 'like', '%' . $search . '%');
@@ -29,9 +27,7 @@ class MenuController extends Controller
                 $query->where('status_tersedia', 'habis');
             }
         }
-
         $menus = $query->orderBy('id_menu', 'desc')->paginate(10)->withQueryString();
-
         return view('admin.menu', compact('menus'));
     }
 
@@ -49,7 +45,7 @@ class MenuController extends Controller
     {
         $request->validate([
             'nama_menu' => 'required|string|max:100',
-            'harga' => 'required|numeric|min:1000|max:1000000', // Batas Rp 1.000 - Rp 10.000.00
+            'harga' => 'required|numeric|min:1000|max:1000000',
             'kategori' => 'required|string|max:50',
             'status_tersedia' => 'required|in:tersedia,habis',
             'gambar' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -59,13 +55,9 @@ class MenuController extends Controller
         ]);
 
         $namaFile = null;
-
         if ($request->hasFile('gambar')) {
-
             $file = $request->file('gambar');
-
             $namaFile = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
             $file->move(public_path('uploads/menu'), $namaFile);
         }
 
@@ -93,23 +85,21 @@ class MenuController extends Controller
     }
 
     // 5. Menyimpan Perubahan Edit Menu
-    // 5. Menyimpan Perubahan Edit Menu
     public function update(Request $request, $id)
     {
         // Validasi, perhatikan tambahan validasi gambar
         $request->validate([
             'nama_menu' => 'required|string|max:100',
-            'harga' => 'required|numeric|min:1000|max:1000000', // Batas Rp 1.000 - Rp 1.000.000
+            'harga' => 'required|numeric|min:1000|max:1000000',
             'kategori' => 'required|string|max:50',
-            'status_tersedia' => 'required|in:tersedia,habis', // Validasi enum
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Bisa diisi gambar baru, bisa kosong
-        ], [
+            'status_tersedia' => 'required|in:tersedia,habis',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'harga.min' => 'Harga minimal Rp 1.000',
             'harga.max' => 'Harga maksimal Rp 1.000.000',
         ]);
 
         $menu = Menu::findOrFail($id);
-        $namaFileGambar = $menu->gambar; // Default pakai gambar lama
+        $namaFileGambar = $menu->gambar;
 
         // Cek jika admin mengunggah gambar baru
         if ($request->hasFile('gambar')) {

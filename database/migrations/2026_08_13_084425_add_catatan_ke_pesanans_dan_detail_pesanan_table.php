@@ -14,13 +14,6 @@ return new class extends Migration
                 $table->string('catatan', 255)->nullable()->after('status_pesanan');
             }
         });
-
-        // Cek dan tambah kolom catatan_item di tabel detail_pesanan
-        Schema::table('detail_pesanan', function (Blueprint $table) {
-            if (!Schema::hasColumn('detail_pesanan', 'catatan_item')) {
-                $table->string('catatan_item', 255)->nullable()->after('total');
-            }
-        });
     }
 
     public function down(): void
@@ -28,12 +21,6 @@ return new class extends Migration
         Schema::table('pesanan', function (Blueprint $table) {
             if (Schema::hasColumn('pesanan', 'catatan')) {
                 $table->dropColumn('catatan');
-            }
-        });
-
-        Schema::table('detail_pesanan', function (Blueprint $table) {
-            if (Schema::hasColumn('detail_pesanan', 'catatan_item')) {
-                $table->dropColumn('catatan_item');
             }
         });
     }

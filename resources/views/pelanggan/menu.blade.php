@@ -1,30 +1,44 @@
 @extends('layouts.pelanggan')
 
-@section('title', 'Pilih Menu - Restoran')
+@section('title', 'Pilih Menu')
 
 @section('content')
 
-{{-- Search --}}
+{{-- Toast Container --}}
+<div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-[999] pointer-events-none">
+</div>
+
+{{-- Search Bar --}}
 <div class="relative mb-4">
     <input
         type="text"
         id="search-menu"
         placeholder="Cari menu..."
-        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white
-               focus:outline-none focus:ring-2 focus:ring-orange-500
-               focus:border-transparent text-sm shadow-sm"
+        class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white
+            focus:outline-none focus:ring-2 focus:ring-orange-400
+            focus:border-transparent text-sm shadow-sm"
     >
-    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+    <button
+        type="button"
+        id="clear-search"
+        onclick="clearSearch()"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full
+            bg-gray-100 text-gray-400 items-center justify-center
+            hover:bg-gray-200 transition"
+        style="display: none;"
+    >
+        <i class="fa-solid fa-xmark text-xs"></i>
+    </button>
 </div>
 
 {{-- Kategori --}}
-<div class="flex gap-2 mb-5 overflow-x-auto scrollbar-hide pb-1 touch-pan-x">
+<div class="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1" style="scrollbar-width: none;">
     <button
         type="button"
         data-kategori="semua"
-        class="cat-btn px-4 py-1.5 border text-xs font-bold rounded-full
-               whitespace-nowrap transition bg-orange-500 text-white
-               border-transparent shadow-sm shrink-0"
+        class="cat-btn px-4 py-1.5 text-xs font-bold rounded-full
+            whitespace-nowrap shrink-0 bg-orange-500 text-white border border-transparent"
     >
         Semua
     </button>
@@ -33,21 +47,18 @@
         <button
             type="button"
             data-kategori="{{ strtolower($kategori) }}"
-            class="cat-btn px-4 py-1.5 border text-xs font-bold rounded-full
-                   whitespace-nowrap transition bg-white text-gray-600
-                   border-gray-200 hover:bg-gray-50 shrink-0"
+            class="cat-btn px-4 py-1.5 text-xs font-bold rounded-full
+                whitespace-nowrap shrink-0 bg-white text-gray-600
+                border border-gray-200 hover:border-orange-300"
         >
             {{ $kategori }}
         </button>
     @endforeach
 </div>
 
-{{-- Grid menu --}}
-<div
-    id="menu-grid"
-    class="grid grid-cols-2 min-[420px]:grid-cols-2 md:grid-cols-3
-           gap-2.5 min-[420px]:gap-3 md:gap-4"
->
+{{-- Grid Menu --}}
+<div id="menu-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+
     @forelse($menus as $menu)
         @php
             $isHabis = in_array($menu->status_tersedia, ['habis', '0', 0], true);
@@ -55,132 +66,108 @@
 
         <div
             class="menu-item bg-white rounded-2xl border border-gray-100
-                   shadow-sm overflow-hidden flex flex-col min-w-0 relative
-                   {{ $isHabis ? 'opacity-75' : '' }}"
+                shadow-sm overflow-hidden flex flex-col relative
+                {{ $isHabis ? 'opacity-60' : '' }}"
             data-nama="{{ strtolower($menu->nama_menu) }}"
             data-kategori="{{ strtolower($menu->kategori) }}"
         >
-            {{-- Gambar --}}
             <div class="aspect-[4/3] bg-gray-100 w-full overflow-hidden relative">
                 @if(!empty($menu->gambar))
                     <img
                         src="{{ asset('uploads/menu/' . $menu->gambar) }}"
                         alt="{{ $menu->nama_menu }}"
                         loading="lazy"
-                        class="w-full h-full object-cover
-                               {{ $isHabis ? 'grayscale brightness-75' : '' }}"
+                        class="w-full h-full object-cover {{ $isHabis ? 'grayscale' : '' }}"
+                        onerror="this.style.display='none'"
                     >
                 @else
                     <div class="w-full h-full flex items-center justify-center text-gray-300">
-                        <i class="fa-solid fa-utensils text-3xl sm:text-4xl"></i>
+                        <i class="fa-solid fa-utensils text-3xl"></i>
                     </div>
                 @endif
 
                 @if($isHabis)
                     <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span
-                            class="bg-red-600 text-white font-extrabold
-                                   text-[10px] sm:text-xs px-2.5 sm:px-3 py-1
-                                   rounded uppercase tracking-wider shadow-md
-                                   border border-white/20"
-                        >
+                        <span class="bg-red-600 text-white font-bold text-[10px] px-3 py-1 rounded uppercase tracking-wide">
                             Habis
                         </span>
                     </div>
                 @endif
             </div>
 
-            {{-- Detail Menu --}}
-<div class="p-3 sm:p-3.5 flex flex-col flex-1 min-w-0">
-    <span
-        class="text-[10px] sm:text-xs text-orange-600 bg-orange-50
-               px-2 py-0.5 rounded-full w-fit font-semibold
-               max-w-full truncate"
-    >
-        {{ $menu->kategori ?? 'Makanan' }}
-    </span>
+            <div class="p-3 flex flex-col flex-1">
+                <span class="text-[10px] text-orange-600 bg-orange-50 px-2 py-0.5 rounded w-fit font-medium truncate">
+                    {{ $menu->kategori ?? 'Menu' }}
+                </span>
 
-    <h3
-        class="font-bold text-sm sm:text-base mt-1.5 text-gray-900
-               leading-snug line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem]"
-    >
-        {{ $menu->nama_menu ?? 'Nama Menu' }}
-    </h3>
+                <h3 class="font-bold text-sm mt-1.5 text-gray-900 leading-snug line-clamp-2 min-h-[2.5rem]">
+                    {{ $menu->nama_menu }}
+                </h3>
 
-    <div class="flex items-center justify-between gap-2 mt-auto pt-3">
-        <span
-            class="font-extrabold text-gray-800
-                   text-sm sm:text-base leading-tight
-                   whitespace-nowrap"
-        >
-            Rp {{ number_format($menu->harga ?? 15000, 0, ',', '.') }}
-        </span>
+                <div class="flex items-end justify-between gap-1 mt-auto pt-2">
+                    <span class="font-extrabold text-gray-800 text-sm whitespace-nowrap">
+                        Rp {{ number_format($menu->harga, 0, ',', '.') }}
+                    </span>
 
-        @if($isHabis)
-            <button
-                type="button"
-                disabled
-                class="py-1.5 px-2.5 sm:px-3 bg-gray-300
-                       text-gray-500 rounded-lg text-xs
-                       font-bold cursor-not-allowed shrink-0"
-            >
-                Habis
-            </button>
-        @else
-            <button
-                type="button"
-                onclick="addToCart(
-                    '{{ $menu->id_menu ?? 1 }}',
-                    '{{ addslashes($menu->nama_menu) }}',
-                    {{ $menu->harga ?? 15000 }},
-                    '{{ addslashes($menu->gambar ?? '') }}'
-                )"
-                class="py-1.5 px-2.5 sm:px-3 bg-orange-500
-                       text-white rounded-lg text-xs
-                       font-bold hover:bg-orange-600
-                       active:bg-orange-700 transition
-                       flex items-center gap-1 shadow-sm shrink-0"
-            >
-                <i class="fa-solid fa-plus text-[9px]"></i>
-                <span>Tambah</span>
-            </button>
-        @endif
-    </div>
-</div>
+                    @if($isHabis)
+                        <button disabled class="py-1.5 px-2.5 bg-gray-200 text-gray-400 rounded-lg text-[11px] font-bold cursor-not-allowed shrink-0">
+                            Habis
+                        </button>
+                    @else
+                        <button
+                            type="button"
+                            onclick="addToCart(
+                                '{{ $menu->id_menu }}',
+                                '{{ addslashes($menu->nama_menu) }}',
+                                {{ $menu->harga }},
+                                '{{ addslashes($menu->gambar ?? '') }}'
+                            )"
+                            class="py-1.5 px-3 bg-orange-500 text-white rounded-lg text-[11px] font-bold
+                                hover:bg-orange-600 active:bg-orange-700 transition
+                                flex items-center gap-1 shrink-0"
+                        >
+                            <i class="fa-solid fa-plus text-[9px]"></i>
+                            <span>Tambah</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
         </div>
     @empty
-        <div
-            id="empty-state"
-            class="col-span-full py-12 text-center text-gray-400"
-        >
+        <div class="col-span-full py-12 text-center text-gray-400">
             <i class="fa-solid fa-box-open text-4xl mb-2"></i>
             <p class="text-sm font-semibold">Belum ada menu tersedia.</p>
         </div>
     @endforelse
 </div>
 
-{{-- Hasil pencarian kosong --}}
-<div
-    id="no-result"
-    class="hidden col-span-full py-12 text-center text-gray-400"
->
-    <i class="fa-solid fa-magnifying-glass text-4xl mb-2"></i>
+{{-- No Result --}}
+<div id="no-result" class="hidden py-12 text-center text-gray-400">
+    <i class="fa-solid fa-magnifying-glass text-3xl mb-2"></i>
     <p class="text-sm font-semibold">Menu tidak ditemukan.</p>
+    <button type="button" onclick="clearSearch()" class="mt-3 text-xs font-bold text-orange-500 hover:text-orange-600">
+        Reset Pencarian
+    </button>
 </div>
 
 <script>
     const storageKey = 'cart_meja_{{ $meja->token }}';
     let currentKategori = 'semua';
 
-    // Tambahkan menu ke localStorage
     function addToCart(id, nama, harga, gambar) {
         const cart = JSON.parse(localStorage.getItem(storageKey)) || [];
-        const existing = cart.find(item => item.id == id);
+        const existing = cart.find(item => String(item.id) === String(id));
 
         if (existing) {
             existing.qty++;
         } else {
-            cart.push({ id, nama, harga, gambar, qty: 1 });
+            cart.push({
+                id: String(id),
+                nama: nama,
+                harga: Number(harga),
+                gambar: gambar || '',
+                qty: 1
+            });
         }
 
         localStorage.setItem(storageKey, JSON.stringify(cart));
@@ -188,37 +175,47 @@
         if (typeof updateCartCount === 'function') updateCartCount();
         if (typeof animateCartBadge === 'function') animateCartBadge();
 
-        if (typeof showNotification === 'function') {
-            showNotification(`${nama} berhasil ditambahkan!`);
-        } else {
-            alert(`${nama} berhasil ditambahkan ke keranjang!`);
-        }
+        // Toast sederhana
+        toast(nama + ' ditambahkan');
     }
 
-    // Terapkan search + kategori
-    function applyFilter() {
-        const query = document.getElementById('search-menu')?.value
-            .trim()
-            .toLowerCase() || '';
+    // Toast simple
+    function toast(msg) {
+        const box = document.getElementById('toast');
+        const el = document.createElement('div');
+        el.className = 'bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 mb-2 transition-all';
+        el.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>' + msg;
+        box.appendChild(el);
 
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-4px)';
+            setTimeout(() => el.remove(), 200);
+        }, 1800);
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('search-menu');
+        if (input) input.value = '';
+        document.getElementById('clear-search').style.display = 'none';
+        applyFilter();
+    }
+
+    function applyFilter() {
+        const query = (document.getElementById('search-menu')?.value || '').trim().toLowerCase();
         const items = document.querySelectorAll('.menu-item');
         const noResult = document.getElementById('no-result');
+        const clearBtn = document.getElementById('clear-search');
         let visibleCount = 0;
+
+        clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
 
         items.forEach(item => {
             const nama = item.dataset.nama || '';
             const kategori = item.dataset.kategori || '';
-
-            const matchKategori =
-                currentKategori === 'semua' ||
-                kategori === currentKategori;
-
-            const matchQuery = nama.includes(query);
-            const visible = matchKategori && matchQuery;
-
-            item.classList.toggle('hidden', !visible);
-
-            if (visible) visibleCount++;
+            const show = (currentKategori === 'semua' || kategori === currentKategori) && nama.includes(query);
+            item.classList.toggle('hidden', !show);
+            if (show) visibleCount++;
         });
 
         noResult?.classList.toggle('hidden', visibleCount > 0);
@@ -228,19 +225,20 @@
         const searchInput = document.getElementById('search-menu');
         const catButtons = document.querySelectorAll('.cat-btn');
 
-        searchInput?.addEventListener('input', applyFilter);
+        let t;
+        searchInput?.addEventListener('input', () => {
+            clearTimeout(t);
+            t = setTimeout(applyFilter, 150);
+        });
 
-        catButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                currentKategori = button.dataset.kategori;
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentKategori = btn.dataset.kategori;
 
-                catButtons.forEach(btn => {
-                    btn.className =
-                        'cat-btn px-4 py-1.5 border text-xs font-bold rounded-full whitespace-nowrap transition bg-white text-gray-600 border-gray-200 hover:bg-gray-50 shrink-0';
+                catButtons.forEach(b => {
+                    b.className = 'cat-btn px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap shrink-0 bg-white text-gray-600 border border-gray-200 hover:border-orange-300';
                 });
-
-                button.className =
-                    'cat-btn px-4 py-1.5 border text-xs font-bold rounded-full whitespace-nowrap transition bg-orange-500 text-white border-transparent shadow-sm shrink-0';
+                btn.className = 'cat-btn px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap shrink-0 bg-orange-500 text-white border border-transparent';
 
                 applyFilter();
             });

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Meja;
-use Illuminate\Support\Str; // Wajib dipanggil untuk membuat Token Acak
+use Illuminate\Support\Str;
 
 class MejaController extends Controller
 {
@@ -28,7 +28,7 @@ class MejaController extends Controller
         Meja::create([
             'nama_meja' => $request->nama_meja,
             'status' => $request->status,
-            'token' => Str::random(20), // Generate otomatis 20 huruf/angka acak
+            'token' => Str::random(20),
         ]);
 
         return redirect()->back()->with('success', 'Meja baru berhasil ditambahkan!');
@@ -54,8 +54,6 @@ class MejaController extends Controller
         $meja->update([
             'nama_meja' => $request->nama_meja,
             'status' => $request->status,
-            // Token sengaja tidak diubah agar QR code yang sudah dicetak tidak rusak, 
-            // kecuali jika admin ingin meresetnya.
         ]);
 
         return redirect()->back()->with('success', 'Data meja berhasil diperbarui!');
