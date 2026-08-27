@@ -15,8 +15,8 @@ return new class extends Migration
             // 2. username: varchar(15), Not Null
             $table->string('username', 15);
             
-            // 3. password: varchar(50), Not Null
-            $table->string('password', 50);
+            // 3. password: varchar(255), Not Null
+            $table->string('password', 255);
             
             // 4. nama_staf: varchar(50), Not Null
             $table->string('nama_staf', 50);
