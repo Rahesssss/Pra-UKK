@@ -17,7 +17,7 @@ class LaporanController extends Controller
         if (!session()->has('staf_id')) {
             return redirect('/admin/login');
         }
-=
+
         // TENTUKAN MODE FILTER: bulanan atau custom range
         $filterMode = $request->input('filter_mode', 'bulanan'); // 'bulanan' | 'custom'
 
